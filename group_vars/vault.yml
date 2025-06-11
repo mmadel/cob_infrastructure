@@ -1,6 +1,0 @@
-mysql_root_password: changeme
-postgres_password: changeme
-
-emr_db_password: emr_pass
-billing_db_password: billing_pass
-demo_db_password: demo_pass
