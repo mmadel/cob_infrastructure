@@ -1,6 +1,22 @@
 - name: Ensure basic packages are installed
   apt:
-    name: ['vim', 'curl', 'wget']
+    name:
+      - vim
+      - curl
+      - wget
+      - python3
+      - python3-pip
     state: present
     update_cache: yes
+
+- name: Install PyMySQL for MySQL modules
+  pip:
+    name: PyMySQL
+    executable: pip3
+
+- name: Install psycopg2 for PostgreSQL modules
+  apt:
+    name: python3-psycopg2
+    state: present
+
 - import_tasks: set_system_env.yml
