@@ -9,10 +9,10 @@
     state: present
     update_cache: yes
 
-- name: Install PyMySQL for MySQL modules
-  pip:
-    name: PyMySQL
-    executable: pip3
+- name: Install MySQL Python bindings (PyMySQL) using apt
+  apt:
+    name: python3-pymysql
+    state: present
 
 - name: Install psycopg2 for PostgreSQL modules
   apt:
