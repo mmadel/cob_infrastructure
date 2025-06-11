@@ -3,3 +3,4 @@
     name: ['vim', 'curl', 'wget']
     state: present
     update_cache: yes
+- import_tasks: set_system_env.yml

@@ -1,0 +1,7 @@
+- name: Export DB credentials to system environment
+  template:
+    src: env_exports.sh.j2
+    dest: /etc/profile.d/db_env.sh
+    owner: root
+    group: root
+    mode: '0644'
