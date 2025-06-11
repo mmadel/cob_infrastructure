@@ -2,7 +2,7 @@
   hosts: dbservers
   become: yes
   vars_files:
-    - ../../group_vars/vault.yml  # adjust the path if needed
+    - ../group_vars/vault.yml
   roles:
     - role: common
     - role: mysql
