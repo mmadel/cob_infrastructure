@@ -1,17 +1,18 @@
-- name: Set root password
-  mysql_user:
+- name: Set MySQL root password (first-time setup, no password yet)
+  community.mysql.mysql_user:
     name: root
     host: localhost
     password: "{{ mysql_root_password }}"
-    login_unix_socket: /var/run/mysqld/mysqld.sock
+    login_user: root
+    login_password: ""
+  when: mysql_root_password is defined
+  ignore_errors: true  # Optional: prevents failures if already set
 
-- name: Remove anonymous users
-  mysql_user:
-    name: ''
-    host_all: yes
-    state: absent
-
-- name: Remove test database
-  mysql_db:
-    name: test
-    state: absent
+- name: Ensure root login uses password (post-initial setup)
+  community.mysql.mysql_user:
+    name: root
+    host: localhost
+    password: "{{ mysql_root_password }}"
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  when: mysql_root_password is defined
