@@ -1,0 +1,13 @@
+- name: Create EMR MySQL database and user
+  mysql_db:
+    name: emr
+    state: present
+
+- name: Create EMR MySQL user
+  mysql_user:
+    name: emr_user
+    password: "{{ emr_db_password }}"
+    priv: 'emr.*:ALL'
+    state: present
+
+# Repeat for billing and demo...

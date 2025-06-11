@@ -1,0 +1,5 @@
+- name: Ensure basic packages are installed
+  apt:
+    name: ['vim', 'curl', 'wget']
+    state: present
+    update_cache: yes

@@ -1,0 +1,4 @@
+postgresql_databases:
+  - emr
+  - billing
+  - demo
