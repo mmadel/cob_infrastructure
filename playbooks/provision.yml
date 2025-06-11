@@ -1,6 +1,8 @@
 - name: Provision MySQL and PostgreSQL Databases
   hosts: dbservers
   become: yes
+  vars_files:
+    - ../../group_vars/vault.yml  # adjust the path if needed
   roles:
     - role: common
     - role: mysql
