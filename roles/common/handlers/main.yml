@@ -9,5 +9,5 @@
     state: restarted
     daemon_reload: yes
   loop:
-    - myapp.service      # Replace with actual service names
-    - anotherapp.service # Add more if needed
+    - demo.service      # Replace with actual service names
+    # - anotherapp.service # Add more if needed
