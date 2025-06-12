@@ -2,7 +2,7 @@
   hosts: dbservers
   become: yes
   vars_files:
-    - ../group_vars/vault.yml  # Adjust path if needed
+    - group_vars/vault.yml  # Adjust path if needed
   tasks:
     - name: Verify MySQL root login from target system
       shell: |
