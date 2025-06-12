@@ -1,4 +1,5 @@
-# set_system_env.yml
+# roles/common/tasks/set_system_env.yml
+
 - name: Read existing /etc/environment
   slurp:
     src: /etc/environment
@@ -7,7 +8,14 @@
 
 - name: Decode and parse existing environment
   set_fact:
-    existing_env: "{{ environment_file['content'] | b64decode | splitlines | select('match', '^[A-Z_]+=') | list }}"
+    existing_env: >-
+      {{
+        environment_file['content']
+        | b64decode
+        | split('\n')
+        | select('match', '^[A-Z_]+=')
+        | list
+      }}
   when: environment_file is defined and environment_file['content'] is defined
 
 - name: Prepare environment variables to append
