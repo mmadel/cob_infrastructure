@@ -1,6 +1,10 @@
-- name: Verify MySQL login from Ansible
-  shell: "mysql -u root -p'{{ mysql_root_password }}' -e 'SHOW DATABASES;'"
-  register: mysql_check
-  ignore_errors: true
+- name: Verify MySQL root login from target system
+  shell: |
+    mysql -u root -p'{{ mysql_root_password }}' -h 127.0.0.1 -e "SHOW DATABASES;"
+  register: mysql_login_check
+  ignore_errors: yes
+  changed_when: false
 
-- debug: var=mysql_check
+- name: Print MySQL login check output
+  debug:
+    var: mysql_login_check
