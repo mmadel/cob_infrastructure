@@ -1,4 +1,0 @@
-mysql_databases:
-  - emr
-  - billing
-  - demo
