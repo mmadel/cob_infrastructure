@@ -12,6 +12,8 @@
     host: "%"
     priv: "emr_db.*:ALL"
     state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
 
 - name: Create Billing database
   mysql_db:
@@ -27,6 +29,8 @@
     host: "%"
     priv: "billing_db.*:ALL"
     state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
 
 - name: Create Demo database
   mysql_db:
@@ -42,3 +46,5 @@
     host: "%"
     priv: "demo_db.*:ALL"
     state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
