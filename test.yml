@@ -1,7 +1,6 @@
-- hosts: localhost
-  gather_facts: no
-  vars_files:
-    - group_vars/vault.yml
-  tasks:
-    - debug: var=mysql_root_user
-    - debug: var=mysql_root_password
+- name: Verify MySQL login from Ansible
+  shell: "mysql -u root -p'{{ mysql_root_password }}' -e 'SHOW DATABASES;'"
+  register: mysql_check
+  ignore_errors: true
+
+- debug: var=mysql_check
