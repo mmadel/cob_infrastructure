@@ -3,5 +3,5 @@
   vars_files:
     - group_vars/vault.yml
   tasks:
-    - debug: var=emr_db_user
-    - debug: var=demo_db_password
+    - debug: var=mysql_root_user
+    - debug: var=mysql_root_password
