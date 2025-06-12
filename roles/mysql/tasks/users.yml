@@ -2,6 +2,8 @@
   mysql_db:
     name: emr_db
     state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
 
 - name: Create EMR DB user
   mysql_user:
@@ -15,6 +17,8 @@
   mysql_db:
     name: billing_db
     state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
 
 - name: Create Billing DB user
   mysql_user:
@@ -28,6 +32,8 @@
   mysql_db:
     name: demo_db
     state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
 
 - name: Create Demo DB user
   mysql_user:
