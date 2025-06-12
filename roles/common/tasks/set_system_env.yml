@@ -1,51 +1,14 @@
-# roles/common/tasks/set_system_env.yml
-
-- name: Read existing /etc/environment
-  slurp:
-    src: /etc/environment
-  register: environment_file
-  ignore_errors: yes
-
-- name: Decode and parse existing environment
-  set_fact:
-    existing_env: >-
-      {{
-        environment_file['content']
-        | b64decode
-        | split('\n')
-        | select('match', '^[A-Z_]+=')
-        | list
-      }}
-  when: environment_file is defined and environment_file['content'] is defined
-
-- name: Prepare environment variables to append
-  set_fact:
-    new_env_vars:
-      - "EMR_DB_USER={{ emr_db_user }}"
-      - "EMR_DB_PASSWORD={{ emr_db_password }}"
-      - "BILLING_DB_USER={{ billing_db_user }}"
-      - "BILLING_DB_PASSWORD={{ billing_db_password }}"
-      - "DEMO_DB_USER={{ demo_db_user }}"
-      - "DEMO_DB_PASSWORD={{ demo_db_password }}"
-
-- name: Merge new variables with existing
-  set_fact:
-    merged_env: >-
-      {{
-        (existing_env | default([]) | reject('match', '^(EMR_DB_USER|EMR_DB_PASSWORD|BILLING_DB_USER|BILLING_DB_PASSWORD|DEMO_DB_USER|DEMO_DB_PASSWORD)='))
-        + new_env_vars
-      }}
-
-- name: Write merged environment to /etc/environment
+- name: Set system-wide environment variables for DB credentials
   copy:
-    dest: /etc/environment
-    content: "{{ merged_env | join('\n') }}\n"
+    dest: /etc/profile.d/db_env.sh
+    content: |
+      export EMR_DB_USER={{ emr_db_user }}
+      export EMR_DB_PASSWORD={{ emr_db_password }}
+      export BILLING_DB_USER={{ billing_db_user }}
+      export BILLING_DB_PASSWORD={{ billing_db_password }}
+      export DEMO_DB_USER={{ demo_db_user }}
+      export DEMO_DB_PASSWORD={{ demo_db_password }}
     owner: root
     group: root
     mode: '0644'
-
-- name: Reload environment variables
-  shell: source /etc/environment
-  args:
-    executable: /bin/bash
-  notify: Restart affected services
+  notify: Reload environment

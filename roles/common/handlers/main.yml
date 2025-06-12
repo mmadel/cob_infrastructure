@@ -1,13 +1,3 @@
 - name: Reload environment
   shell: source /etc/profile.d/db_env.sh || true
   when: ansible_connection == "local"
-
-- name: Restart affected services
-  become: true
-  systemd:
-    name: "{{ item }}"
-    state: restarted
-    daemon_reload: yes
-  loop:
-    - demo.service      # Replace with actual service names
-    # - anotherapp.service # Add more if needed
