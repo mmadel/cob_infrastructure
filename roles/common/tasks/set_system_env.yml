@@ -19,4 +19,4 @@
     regexp: '^EnvironmentFile='
     line: 'EnvironmentFile=/etc/myapp.env'
     insertafter: '^ExecStart='
-  notify: Reload demo.service with updated env
+    notify: Reload demo.service with updated env
