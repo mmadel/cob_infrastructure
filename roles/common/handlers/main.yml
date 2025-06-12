@@ -1,3 +1,10 @@
-- name: Reload environment
-  shell: source /etc/profile.d/db_env.sh || true
-  when: ansible_connection == "local"
+- name: Reload demo.service with updated env
+  block:
+    - name: Reload systemd daemon
+      command: systemctl daemon-reexec
+
+    - name: Restart Spring Boot service
+      systemd:
+        name: demo.service
+        state: restarted
+        enabled: true
