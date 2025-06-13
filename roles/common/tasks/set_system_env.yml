@@ -1,4 +1,20 @@
-- name: Write DB credentials to environment file
+- name: Set system-wide environment variables for DB credentials
+  copy:
+    dest: /etc/profile.d/db_env.sh
+    content: |
+      export EMR_DB_USER={{ emr_db_user }}
+      export EMR_DB_PASSWORD={{ emr_db_password }}
+      export BILLING_DB_USER={{ billing_db_user }}
+      export BILLING_DB_PASSWORD={{ billing_db_password }}
+      export DEMO_DB_USER={{ demo_db_user }}
+      export DEMO_DB_PASSWORD={{ demo_db_password }}
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload environment
+# This task sets system-wide environment variables for database credentials
+# and notifies the handler to reload the environment.
+- name: Write environment variables to /etc/myapp.env for systemd
   copy:
     dest: /etc/myapp.env
     content: |
@@ -10,13 +26,5 @@
       DEMO_DB_PASSWORD={{ demo_db_password }}
     owner: root
     group: root
-    mode: '0600'
-  notify: Reload demo.service with updated env
+    mode: '0644'
 
-- name: Ensure demo.service uses /etc/myapp.env
-  lineinfile:
-    path: /etc/systemd/system/demo.service
-    regexp: '^EnvironmentFile='
-    line: 'EnvironmentFile=/etc/myapp.env'
-    insertafter: '^ExecStart='
-    notify: Reload demo.service with updated env
