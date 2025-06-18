@@ -1,0 +1,6 @@
+---
+- name: Provision DB for d_intake
+  hosts: d_intake
+  become: yes
+  roles:
+    - role: "{{ db_type }}"

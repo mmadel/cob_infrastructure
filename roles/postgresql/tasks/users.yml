@@ -1,14 +1,3 @@
-- name: Create EMR PostgreSQL user and database
-  become_user: postgres
-  postgresql_db:
-    name: emr
-    state: present
-
-- name: Create EMR user
-  become_user: postgres
-  postgresql_user:
-    name: emr_user
-    password: "{{ emr_db_password }}"
-    db: emr
-    priv: ALL
-    state: present
+---
+- name: Create DBs and users
+  debug: msg='Creating DBs: {{ dbs }} for {{ db_user }}'

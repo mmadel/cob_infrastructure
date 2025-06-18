@@ -1,0 +1,6 @@
+---
+- name: Provision DB for billing
+  hosts: billing
+  become: yes
+  roles:
+    - role: "{{ db_type }}"

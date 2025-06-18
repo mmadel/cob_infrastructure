@@ -1,3 +1,0 @@
-- name: Reload environment
-  shell: source /etc/profile.d/db_env.sh || true
-  when: ansible_connection == "local"

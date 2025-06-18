@@ -1,0 +1,8 @@
+[emr]
+localhost ansible_connection=local
+
+[billing]
+localhost ansible_connection=local
+
+[d_intake]
+localhost ansible_connection=local

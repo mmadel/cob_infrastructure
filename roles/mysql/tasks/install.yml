@@ -1,11 +1,3 @@
-- name: Install MySQL Server
-  apt:
-    name: mysql-server
-    state: present
-    update_cache: yes
-
-- name: Ensure MySQL is started and enabled
-  service:
-    name: mysql
-    state: started
-    enabled: yes
+---
+- name: Install {{ db_type }}
+  debug: msg='Installing {{ db_type }} server'

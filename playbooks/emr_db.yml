@@ -1,0 +1,6 @@
+---
+- name: Provision DB for emr
+  hosts: emr
+  become: yes
+  roles:
+    - role: "{{ db_type }}"
