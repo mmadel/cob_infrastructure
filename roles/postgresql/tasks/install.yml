@@ -1,3 +1,33 @@
 ---
-- name: Install {{ db_type }}
-  debug: msg='Installing {{ db_type }} server'
+- name: Ensure PostgreSQL APT packages are present
+  apt:
+    name:
+      - postgresql
+      - postgresql-contrib
+      - libpq-dev
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Ensure PostgreSQL service is started and enabled
+  service:
+    name: postgresql
+    state: started
+    enabled: true
+  become: true
+
+- name: Set PostgreSQL password for default user 'postgres'
+  become: true
+  become_user: postgres
+  ansible.builtin.command: >
+    psql -c "ALTER USER postgres WITH PASSWORD '{{ postgres_root_password }}';"
+  args:
+    creates: /var/lib/postgresql/.ansible_root_password_set  # optional idempotency flag
+  register: postgres_pwd_set
+
+- name: Create marker file to prevent re-running password command
+  ansible.builtin.file:
+    path: /var/lib/postgresql/.ansible_root_password_set
+    state: touch
+  become: true
+  when: postgres_pwd_set is changed
