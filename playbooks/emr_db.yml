@@ -3,4 +3,4 @@
   hosts: emr
   become: yes
   roles:
-    - role: "{{ db_type }}"
+    - role: mysql

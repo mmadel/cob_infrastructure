@@ -3,4 +3,4 @@
   hosts: d_intake
   become: yes
   roles:
-    - role: "{{ db_type }}"
+    - role: postgresql

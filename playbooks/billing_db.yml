@@ -3,4 +3,4 @@
   hosts: billing
   become: yes
   roles:
-    - role: "{{ db_type }}"
+    - role: postgresql
