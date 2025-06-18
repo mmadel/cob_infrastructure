@@ -1,7 +1,8 @@
----
 - name: Provision DB for emr
-  hosts: emr
+- hosts: emr
   become: yes
+  gather_facts: false
+
   pre_tasks:
     - name: Set MySQL root password before installation (non-interactive)
       debconf:
@@ -16,5 +17,6 @@
         question: "mysql-server/root_password_again"
         value: "{{ mysql_root_password }}"
         vtype: "password"
+
   roles:
-    - role: mysql
+    - mysql
