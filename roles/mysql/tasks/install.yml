@@ -10,14 +10,6 @@
     - mysql-server
   become: true
 
-- name: Set MySQL root password before installation (non-interactive)
-  debconf:
-    name: "mysql-server"
-    question: "mysql-server/root_password"
-    value: "{{ mysql_root_password }}"
-    vtype: "password"
-  become: true
-
 - name: Confirm MySQL root password again (non-interactive)
   debconf:
     name: "mysql-server"
