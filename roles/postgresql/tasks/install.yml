@@ -1,39 +1,70 @@
 ---
-- name: Ensure PostgreSQL APT packages are present
-  apt:
-    name:
-      - postgresql
-      - postgresql-contrib
-      - libpq-dev
+- name: Add PostgreSQL APT repository key
+  apt_key:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
     state: present
+  become: true
+
+- name: Add PostgreSQL repository
+  apt_repository:
+    repo: "deb http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+    state: present
+    filename: "pgdg"
+  become: true
+
+- name: Update apt cache
+  apt:
     update_cache: yes
   become: true
 
-- name: Ensure PostgreSQL service is started and enabled
+- name: Install PostgreSQL packages
+  apt:
+    name:
+      - postgresql-16
+      - postgresql-client-16
+      - postgresql-contrib
+      - python3-psycopg2  # required for Ansible modules
+    state: present
+  become: true
+
+- name: Ensure PostgreSQL cluster directory is absent (force clean)
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /etc/postgresql/16/main
+    - /var/lib/postgresql/16/main
+  become: true
+  ignore_errors: true
+
+- name: Recreate PostgreSQL 16 cluster
+  command: pg_createcluster 16 main --start
+  args:
+    creates: /etc/postgresql/16/main
+  become: true
+
+- name: Ensure PostgreSQL service is started
   service:
     name: postgresql
     state: started
-    enabled: true
+    enabled: yes
   become: true
 
-- name: Set PostgreSQL password for default user 'postgres'
+- name: Wait for PostgreSQL to be available
+  wait_for:
+    port: 5432
+    host: 127.0.0.1
+    delay: 3
+    timeout: 20
+  become: true
+
+- name: Validate PostgreSQL is responding
   become: true
   become_user: postgres
-  ansible.builtin.command: >
-    psql -c "ALTER USER postgres WITH PASSWORD '{{ db_password }}';"
-  args:
-    creates: /var/lib/postgresql/.ansible_root_password_set  # optional idempotency flag
-  register: postgres_pwd_set
+  shell: psql -U postgres -c '\l'
+  register: postgres_status
+  changed_when: false
 
-- name: Create marker file to prevent re-running password command
-  ansible.builtin.file:
-    path: /var/lib/postgresql/.ansible_root_password_set
-    state: touch
-  become: true
-  when: postgres_pwd_set is changed
-
-- name: Initialize PostgreSQL cluster (version 16)
-  command: pg_createcluster 16 main --start
-  args:
-    creates: "/etc/postgresql/16/main"
-  become: true
+- name: Show PostgreSQL response
+  debug:
+    var: postgres_status.stdout_lines
