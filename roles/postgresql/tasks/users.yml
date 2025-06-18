@@ -14,7 +14,7 @@
   become_user: postgres
   community.postgresql.postgresql_user:
     name: "{{ pg_app_user }}"
-    password: "{{ pg_app_password }}"
+    password: "{{ db_password }}"
     encrypted: true
     role_attr_flags: "LOGIN"
     state: present
