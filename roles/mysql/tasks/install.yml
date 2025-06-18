@@ -8,6 +8,7 @@
     - gnupg
     - debconf-utils
     - mysql-server
+    - python3-pymysql
   become: true
 
 - name: Confirm MySQL root password again (non-interactive)
