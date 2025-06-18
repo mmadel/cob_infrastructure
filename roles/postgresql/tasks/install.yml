@@ -20,7 +20,7 @@
   become: true
   become_user: postgres
   ansible.builtin.command: >
-    psql -c "ALTER USER postgres WITH PASSWORD '{{ postgres_root_password }}';"
+    psql -c "ALTER USER postgres WITH PASSWORD '{{ db_password }}';"
   args:
     creates: /var/lib/postgresql/.ansible_root_password_set  # optional idempotency flag
   register: postgres_pwd_set
