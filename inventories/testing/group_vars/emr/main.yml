@@ -1,1 +1,2 @@
-db_user: emr
+db_user: emr_user
+database: emr

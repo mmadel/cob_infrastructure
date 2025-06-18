@@ -5,7 +5,7 @@
     state: present
     login_user: root
     login_password: "{{ root_password }}"
-  loop: "{{ dbs }}"
+  loop: "{{ database }}"
   become: true
 
 - name: Ensure MySQL user is created
@@ -17,7 +17,7 @@
     state: present
     login_user: root
     login_password: "{{ root_password }}"
-  loop: "{{ dbs }}"
+  loop: "{{ database }}"
   become: true
 
 - name: Flush privileges to apply changes
