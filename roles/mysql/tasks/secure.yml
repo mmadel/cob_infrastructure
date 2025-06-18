@@ -14,7 +14,11 @@
     query: "SELECT plugin FROM mysql.user WHERE user='root';"
   register: root_plugin
   become: true
-  
+
+- name: Debug root_plugin variable
+    debug:
+      var: root_plugin
+
 - name: Switch root to mysql_native_password if needed
   community.mysql.mysql_user:
     name: root
@@ -25,8 +29,7 @@
     state: present
     login_user: root
     login_password: "{{ root_password }}"
-  when: root_plugin.results[0].rows[0][0] != 'mysql_native_password'
-  become: true
+    when: root_plugin.rows[0][0] != 'mysql_native_password'
 
 - name: Remove anonymous MySQL users
   community.mysql.mysql_user:
