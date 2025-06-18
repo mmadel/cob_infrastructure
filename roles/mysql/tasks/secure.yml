@@ -9,6 +9,7 @@
     plugin: mysql_native_password
     state: present
   become: true
+  become_user: mysql
 
 - name: Remove anonymous MySQL users
   community.mysql.mysql_user:
