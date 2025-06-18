@@ -31,3 +31,9 @@
     state: touch
   become: true
   when: postgres_pwd_set is changed
+
+- name: Initialize PostgreSQL cluster (version 16)
+  command: pg_createcluster 16 main --start
+  args:
+    creates: "/etc/postgresql/16/main"
+  become: true
