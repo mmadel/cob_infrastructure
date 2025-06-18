@@ -1,2 +1,2 @@
-- src: geerlingguy.mysql
-- src: geerlingguy.postgresql
+collections:
+  - name: community.postgresql
