@@ -30,8 +30,8 @@
     state: present
     login_user: root
     login_password: "{{ root_password }}"
-    when: root_plugin.query_result[0][0].plugin != 'mysql_native_password'
-
+  when: root_plugin.query_result[0][0].plugin != 'mysql_native_password'
+  become: true
 - name: Remove anonymous MySQL users
   community.mysql.mysql_user:
     name: ''
