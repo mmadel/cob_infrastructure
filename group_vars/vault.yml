@@ -1,5 +1,0 @@
-emr_db_password: emrpass
-billing_db_password: billingpass
-intake_db_password: intakepass
-vault_mysql_root_password: "root"
-vault_postgres_root_password: "root!"
