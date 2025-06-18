@@ -1,8 +1,0 @@
-db_type: mysql
-db_user: emruser
-db_password: "{{ emr_db_password }}"
-mysql_root_password: "{{ vault_mysql_root_password }}"
-dbs:
-  - emr_app
-  - emr_logs
-  - emr_analytics

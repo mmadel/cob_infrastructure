@@ -1,7 +1,0 @@
-db_type: postgresql
-db_user: billinguser
-db_password: "{{ billing_db_password }}"
-dbs:
-  - billing_app
-  - billing_logs
-  - billing_analytics
