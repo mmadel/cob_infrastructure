@@ -1,12 +1,5 @@
 ---
 - include_tasks: install.yml
-- include_tasks: secure.yml
-- name: Get installed PostgreSQL version
-  command: psql --version
-  register: pg_version_raw
-  changed_when: false
-  become: true
-
 - name: Extract PostgreSQL major version
   set_fact:
     pg_version: "{{ pg_version_raw.stdout.split(' ')[-1].split('.')[0] }}"
@@ -27,6 +20,12 @@
     group: postgres
     mode: '0644'
   notify: Restart PostgreSQL
+  become: true
+- include_tasks: secure.yml
+- name: Get installed PostgreSQL version
+  command: psql --version
+  register: pg_version_raw
+  changed_when: false
   become: true
 - include_tasks: users.yml
 - include_tasks: rotate_passwords.yml
