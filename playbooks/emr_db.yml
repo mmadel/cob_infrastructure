@@ -1,11 +1,5 @@
 - hosts: emr
   become: yes
   gather_facts: false
-
-  pre_tasks:
-  - name: Debug vault root password
-    debug:
-      msg: "Vault MySQL root password is: {{ root_password }}"
-
-  # roles:
-  #   - mysql
+  roles:
+    - mysql

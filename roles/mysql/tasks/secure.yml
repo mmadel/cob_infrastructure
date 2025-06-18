@@ -5,7 +5,7 @@
     host_all: yes
     state: absent
     login_user: root
-    login_password: "{{ vault_mysql_root_password }}"
+    login_password: "{{ root_password }}"
   become: true
 
 - name: Remove MySQL test database
@@ -13,7 +13,7 @@
     name: test
     state: absent
     login_user: root
-    login_password: "{{ vault_mysql_root_password }}"
+    login_password: "{{ root_password }}"
   become: true
 
 - name: Disallow root login remotely
@@ -22,7 +22,7 @@
     host: "{{ item }}"
     state: absent
     login_user: root
-    login_password: "{{ vault_mysql_root_password }}"
+    login_password: "{{ root_password }}"
   loop:
     - "{{ ansible_hostname }}"
     - '%'
@@ -32,16 +32,16 @@
   community.mysql.mysql_user:
     name: root
     host: localhost
-    password: "{{ vault_mysql_root_password }}"
+    password: "{{ root_password }}"
     priv: '*.*:ALL,GRANT'
     state: present
     login_user: root
-    login_password: "{{ vault_mysql_root_password }}"
+    login_password: "{{ root_password }}"
   become: true
 
 - name: Reload privilege tables
   community.mysql.mysql_query:
     login_user: root
-    login_password: "{{ vault_mysql_root_password }}"
+    login_password: "{{ root_password }}"
     query: "FLUSH PRIVILEGES;"
   become: true
