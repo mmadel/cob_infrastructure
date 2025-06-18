@@ -5,7 +5,7 @@
   pre_tasks:
   - name: Debug vault root password
     debug:
-      msg: "Vault MySQL root password is: {{ vault_mysql_root_password }}"
+      msg: "Vault MySQL root password is: {{ root_password }}"
 
-  roles:
-    - mysql
+  # roles:
+  #   - mysql
