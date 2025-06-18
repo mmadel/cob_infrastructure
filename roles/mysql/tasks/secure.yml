@@ -7,7 +7,14 @@
   register: mysql_users
   ignore_errors: yes
   become: true
-
+- name: Get MySQL users
+  community.mysql.mysql_query:
+    login_user: root
+    login_password: "{{ root_password }}"
+    query: "SELECT plugin FROM mysql.user WHERE user='root';"
+  register: root_plugin
+  become: true
+  
 - name: Switch root to mysql_native_password if needed
   community.mysql.mysql_user:
     name: root
@@ -16,9 +23,9 @@
     plugin: mysql_native_password
     priv: '*.*:ALL,GRANT'
     state: present
-    login_unix_socket: /var/run/mysqld/mysqld.sock
-  when: mysql_users.failed or
-        (mysql_users.users | selectattr('user', 'equalto', 'root') | selectattr('plugin', 'ne', 'mysql_native_password') | list | length > 0)
+    login_user: root
+    login_password: "{{ root_password }}"
+  when: root_plugin.results[0].rows[0][0] != 'mysql_native_password'
   become: true
 
 - name: Remove anonymous MySQL users
