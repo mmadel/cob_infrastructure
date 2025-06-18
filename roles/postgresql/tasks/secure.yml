@@ -2,7 +2,7 @@
 - name: Ensure PostgreSQL is listening only on localhost (optional)
   become: true
   lineinfile:
-    path: /etc/postgresql/15/main/postgresql.conf  # Adjust version if needed
+    path: /etc/postgresql/{{ pg_version }}/main/postgresql.conf  # Adjust version if needed
     regexp: '^#?listen_addresses\s*='
     line: "listen_addresses = 'localhost'"
   notify: Restart PostgreSQL
@@ -10,7 +10,7 @@
 - name: Restrict host-based authentication to secure local access
   become: true
   lineinfile:
-    path: /etc/postgresql/15/main/pg_hba.conf  # Adjust version if needed
+    path: /etc/postgresql/{{ pg_version }}/main/pg_hba.conf  # Adjust version if needed
     regexp: '^host\s+all\s+all\s+0.0.0.0/0\s+'
     line: 'host    all             all             127.0.0.1/32            md5'
     insertafter: EOF
@@ -27,7 +27,7 @@
 - name: Ensure password encryption method is scram-sha-256 (default in PG 13+)
   become: true
   lineinfile:
-    path: /etc/postgresql/15/main/postgresql.conf  # Adjust version if needed
+    path: /etc/postgresql/{{ pg_version }}/main/postgresql.conf  # Adjust version if needed
     regexp: '^#?password_encryption\s*='
     line: "password_encryption = scram-sha-256"
   notify: Restart PostgreSQL
