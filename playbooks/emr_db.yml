@@ -1,25 +1,11 @@
 - hosts: emr
   become: yes
   gather_facts: false
-  
+
   pre_tasks:
   - name: Debug vault root password
     debug:
       msg: "Vault MySQL root password is: {{ vault_mysql_root_password }}"
-  pre_tasks:
-    - name: Set MySQL root password before installation (non-interactive)
-      debconf:
-        name: "mysql-server"
-        question: "mysql-server/root_password"
-        value: "{{ vault_mysql_root_password }}"
-        vtype: "password"
-
-    - name: Confirm MySQL root password again (non-interactive)
-      debconf:
-        name: "mysql-server"
-        question: "mysql-server/root_password_again"
-        value: "{{ vault_mysql_root_password }}"
-        vtype: "password"
 
   roles:
     - mysql
