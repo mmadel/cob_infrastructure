@@ -1,3 +1,40 @@
 ---
-- name: Install {{ db_type }}
-  debug: msg='Installing {{ db_type }} server'
+- name: Install required system packages
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop:
+    - gnupg
+    - debconf-utils
+    - mysql-server
+  become: true
+
+- name: Set MySQL root password before installation (non-interactive)
+  debconf:
+    name: "mysql-server"
+    question: "mysql-server/root_password"
+    value: "{{ mysql_root_password }}"
+    vtype: "password"
+  become: true
+
+- name: Confirm MySQL root password again (non-interactive)
+  debconf:
+    name: "mysql-server"
+    question: "mysql-server/root_password_again"
+    value: "{{ mysql_root_password }}"
+    vtype: "password"
+  become: true
+
+- name: Install MySQL Server
+  apt:
+    name: mysql-server
+    state: present
+  become: true
+
+- name: Ensure MySQL service is enabled and started
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+  become: true

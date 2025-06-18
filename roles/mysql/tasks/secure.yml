@@ -1,3 +1,47 @@
 ---
-- name: Secure {{ db_type }} instance
-  debug: msg='Securing {{ db_type }}'
+- name: Remove anonymous MySQL users
+  community.mysql.mysql_user:
+    name: ''
+    host_all: yes
+    state: absent
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  become: true
+
+- name: Remove MySQL test database
+  community.mysql.mysql_db:
+    name: test
+    state: absent
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  become: true
+
+- name: Disallow root login remotely
+  community.mysql.mysql_user:
+    name: root
+    host: "{{ item }}"
+    state: absent
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  loop:
+    - "{{ ansible_hostname }}"
+    - '%'
+  become: true
+
+- name: Ensure root user only allowed from localhost
+  community.mysql.mysql_user:
+    name: root
+    host: localhost
+    password: "{{ mysql_root_password }}"
+    priv: '*.*:ALL,GRANT'
+    state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  become: true
+
+- name: Reload privilege tables
+  community.mysql.mysql_query:
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    query: "FLUSH PRIVILEGES;"
+  become: true

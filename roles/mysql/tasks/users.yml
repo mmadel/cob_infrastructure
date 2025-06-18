@@ -1,3 +1,28 @@
 ---
-- name: Create DBs and users
-  debug: msg='Creating DBs {{ dbs }} for {{ db_user }}'
+- name: Ensure MySQL databases are created
+  community.mysql.mysql_db:
+    name: "{{ item }}"
+    state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  loop: "{{ dbs }}"
+  become: true
+
+- name: Ensure MySQL user is created
+  community.mysql.mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+    priv: "{{ item }}.*:ALL"
+    host: "%"
+    state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  loop: "{{ dbs }}"
+  become: true
+
+- name: Flush privileges to apply changes
+  community.mysql.mysql_query:
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    query: "FLUSH PRIVILEGES;"
+  become: true
