@@ -1,4 +1,3 @@
-- name: Provision DB for emr
 - hosts: emr
   become: yes
   gather_facts: false
