@@ -1,5 +1,14 @@
 ---
 - include_tasks: install.yml
 - include_tasks: secure.yml
+- name: Render postgresql.conf from template
+  template:
+    src: postgresql.conf.j2
+    dest: /etc/postgresql/15/main/postgresql.conf  # Adjust version if needed
+    owner: postgres
+    group: postgres
+    mode: '0644'
+  notify: Restart PostgreSQL
+  become: true
 - include_tasks: users.yml
 - include_tasks: rotate_passwords.yml

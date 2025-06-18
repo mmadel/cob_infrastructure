@@ -1,3 +1,2 @@
-db_user: billing_user
-database:
-  - billing
+pg_app_user: billing_user
+pg_app_db: billing
