@@ -47,3 +47,9 @@
 # Step 8: Rotate DB user passwords (optional)
 - name: Include password rotation logic
   include_tasks: rotate_passwords.yml
+
+- name: Ensure PostgreSQL cluster is initialized (Debian/Ubuntu)
+  command: "pg_createcluster {{ pg_major_version }} main --start"
+  args:
+    creates: "/etc/postgresql/{{ pg_major_version }}/main"
+  become: true
