@@ -1,36 +1,58 @@
 ---
-- include_tasks: install.yml
-
-# ✅ Get PostgreSQL version before using it
-- name: Get installed PostgreSQL version
-  command: psql --version
-  register: pg_version_raw
-  changed_when: false
+- name: Ensure apt cache is updated
+  apt:
+    update_cache: true
   become: true
 
-- name: Extract PostgreSQL major version
-  set_fact:
-    pg_version: "{{ pg_version_raw.stdout.split(' ')[-1].split('.')[0] }}"
-
-- name: Ensure PostgreSQL config directory exists
-  file:
-    path: "/etc/postgresql/{{ pg_version }}/main"
-    state: directory
-    owner: postgres
-    group: postgres
-    mode: '0755'
+- name: Ensure required system dependencies are installed
+  apt:
+    name:
+      - gnupg
+      - lsb-release
+      - ca-certificates
+      - curl
+    state: present
   become: true
 
-- name: Render postgresql.conf from template
-  template:
-    src: postgresql.conf.j2
-    dest: "/etc/postgresql/{{ pg_version }}/main/postgresql.conf"
-    owner: postgres
-    group: postgres
-    mode: '0644'
-  notify: Restart PostgreSQL
+- name: Add PostgreSQL APT repository key
+  apt_key:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    state: present
   become: true
 
-- include_tasks: secure.yml
-- include_tasks: users.yml
-- include_tasks: rotate_passwords.yml
+- name: Add PostgreSQL APT repository
+  apt_repository:
+    repo: "deb http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+    filename: "pgdg"
+    state: present
+  become: true
+
+- name: Install PostgreSQL and contrib packages
+  apt:
+    name:
+      - postgresql
+      - postgresql-contrib
+    state: present
+  become: true
+
+- name: Install Python dependencies for Ansible PostgreSQL modules
+  apt:
+    name:
+      - python3-pip
+      - libpq-dev
+      - python3-psycopg2
+    state: present
+  become: true
+
+- name: Ensure psycopg2-binary is installed (fallback for newer Python versions)
+  pip:
+    name: psycopg2-binary
+    executable: pip3
+  become: true
+
+- name: Ensure PostgreSQL service is started and enabled
+  service:
+    name: postgresql
+    state: started
+    enabled: true
+  become: true
