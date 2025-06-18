@@ -11,7 +11,7 @@
 - name: Ensure MySQL user is created
   community.mysql.mysql_user:
     name: "{{ db_user }}"
-    password: "{{ emr_password }}"
+    password: "{{ db_password }}"
     priv: "{{ item }}.*:ALL"
     host: "%"
     state: present
