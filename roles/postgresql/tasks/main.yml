@@ -1,5 +1,13 @@
 ---
 - include_tasks: install.yml
+
+# ✅ Get PostgreSQL version before using it
+- name: Get installed PostgreSQL version
+  command: psql --version
+  register: pg_version_raw
+  changed_when: false
+  become: true
+
 - name: Extract PostgreSQL major version
   set_fact:
     pg_version: "{{ pg_version_raw.stdout.split(' ')[-1].split('.')[0] }}"
@@ -12,20 +20,17 @@
     group: postgres
     mode: '0755'
   become: true
+
 - name: Render postgresql.conf from template
   template:
     src: postgresql.conf.j2
-    dest: /etc/postgresql/{{ pg_version }}/main/postgresql.conf  # Adjust version if needed
+    dest: "/etc/postgresql/{{ pg_version }}/main/postgresql.conf"
     owner: postgres
     group: postgres
     mode: '0644'
   notify: Restart PostgreSQL
   become: true
+
 - include_tasks: secure.yml
-- name: Get installed PostgreSQL version
-  command: psql --version
-  register: pg_version_raw
-  changed_when: false
-  become: true
 - include_tasks: users.yml
 - include_tasks: rotate_passwords.yml
