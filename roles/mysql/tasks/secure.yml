@@ -15,9 +15,10 @@
   register: root_plugin
   become: true
 
-- name: Debug root_plugin variable
-    debug:
-      var: root_plugin
+- name: Show root_plugin debug output
+  ansible.builtin.debug:
+    var: root_plugin
+  become: false  # Debug task doesn't require become
 
 - name: Switch root to mysql_native_password if needed
   community.mysql.mysql_user:
