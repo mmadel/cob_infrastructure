@@ -6,5 +6,7 @@
   vars:
     env_name: testing
     service_name: emr
+  tasks:
+    - import_tasks: ../tasks/load_env_config.yml
   roles:
     - mysql
