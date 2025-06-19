@@ -17,7 +17,7 @@
   tags: env_config
 - name: Debug env_vars raw content
   debug:
-    var: env_vars
+    var: env_file_path
 - name: Parse structured vars from .env
   set_fact:
     db_user: "{{ env_vars.DB_USER }}"
