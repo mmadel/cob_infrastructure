@@ -1,21 +1,15 @@
 ---
-- name: Debug loaded values
-  debug:
-    msg:
-    - "DB User: {{ db_user }}"
-    - "Databases: {{ databases }}"
-    - "Root password: {{ db_root_password }}"
-# - include_tasks: install.yml
-# - include_tasks: secure.yml
-# - include_tasks: users.yml
-# - include_tasks: rotate_passwords.yml
-# - name: Copy MySQL configuration file from template
-#   template:
-#     src: my.cnf.j2
-#     dest: /etc/mysql/my.cnf
-#     owner: root
-#     group: root
-#     mode: '0644'
-#   notify: Restart MySQL
-#  become: true
+- include_tasks: install.yml
+- include_tasks: secure.yml
+- include_tasks: users.yml
+- include_tasks: rotate_passwords.yml
+- name: Copy MySQL configuration file from template
+  template:
+    src: my.cnf.j2
+    dest: /etc/mysql/my.cnf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart MySQL
+  become: true
 
