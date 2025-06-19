@@ -26,15 +26,12 @@
 
 - name: Parse raw .env lines into key=value pairs
   set_fact:
-    raw_env_vars: >-
-      {{
-        raw_env_lines
-        | reject('match', '^#')       # skip comments
-        | reject('match', '^\\s*$')   # skip blank lines
-        | map('regex_replace', '^\\s*(.*?)\\s*=\\s*(.*?)\\s*$', '\\1=\\2')
-        | map('split', '=', 1)
-        | items2dict
-      }}
+   raw_env_vars: "{{ raw_env_lines
+    | reject('match', '^#')
+    | reject('match', '^\\s*$')
+    | map('regex_replace', '^\\s*(.*?)\\s*=\\s*(.*?)\\s*$', '\\1=\\2')
+    | map('split', '=', 1)
+    | items2dict }}"
   tags: env_config
 
 - name: Debug raw_env_vars (optional)
