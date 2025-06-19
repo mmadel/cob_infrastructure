@@ -3,5 +3,6 @@
 - hosts: emr
   become: yes
   gather_facts: false
+  
   roles:
     - mysql

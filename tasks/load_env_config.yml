@@ -1,0 +1,38 @@
+---
+# Inputs: expects you to define 'env_name' and 'service_name' before importing this task
+# Example:
+# env_name: testing
+# service_name: emr
+
+- name: Clone cob-env-config repo
+  git:
+    repo: "https://github.com/mmadel/cob-environment-configuration.git"
+    dest: "./cob-environment-configuration"
+    update: yes
+  tags: env_config
+
+- name: Load plain env vars from cob-env-config
+  set_fact:
+    env_vars: "{{ lookup('ini', lookup('file', 'cob-environment-configuration/' ~ env_name ~ '/' ~ service_name ~ '/' ~ service_name ~ '.env'), delimiter='=') }}"
+  tags: env_config
+
+- name: Parse structured vars from .env
+  set_fact:
+    db_user: "{{ env_vars.DB_USER }}"
+    databases: "{{ env_vars.DATABASE.split(',') }}"
+    # Add more plain vars here if needed
+  tags: env_config
+
+- name: Load encrypted secrets from vault
+  include_vars:
+    file: "cob-env-config/{{ env_name }}/{{ service_name }}/{{ service_name }}-secrets.env.vault"
+    name: secrets
+  tags: env_config
+
+- name: Flatten secrets for easier use
+  set_fact:
+    db_user_password: "{{ secrets.db_user_password | default('') }}"
+    db_root_password: "{{ secrets.db_root_password | default('') }}"
+    jwt_secret: "{{ secrets.jwt_secret | default('') }}"
+    # Add more secrets here as needed
+  tags: env_config
