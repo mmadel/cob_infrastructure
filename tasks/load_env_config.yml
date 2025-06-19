@@ -28,10 +28,13 @@
   debug:
     var: raw_env_vars
 
-# Convert list of "KEY=VALUE" to dict
-- name: Convert raw_env_vars to dictionary
+- name: Convert raw .env lines to dictionary
   set_fact:
-    parsed_env_vars: "{{ raw_env_vars | map('split', '=', 1) | items2dict }}"
+    parsed_env_vars: "{{ raw_env_vars
+      | select('match', '^[^#\\s].*=.*$')
+      | map('regex_replace', '^\\s*(.*?)\\s*=\\s*(.*?)\\s*$', '\\1=\\2')
+      | map('split', '=', 1)
+      | items2dict }}"
   tags: env_config
 
 # Export needed plain values
