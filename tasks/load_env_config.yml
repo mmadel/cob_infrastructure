@@ -1,12 +1,12 @@
 ---
 # Inputs required: 'env_name' and 'service_name' should be defined before this task is imported.
 
-- name: Clone cob-env-config repo
-  git:
-    repo: "https://github.com/mmadel/cob-environment-configuration.git"
-    dest: "/cob-env-config"
-    update: yes
-  tags: env_config
+# - name: Clone cob-env-config repo
+#   git:
+#     repo: "https://github.com/mmadel/cob-environment-configuration.git"
+#     dest: "/cob-env-config"
+#     update: yes
+#   tags: env_config
 
 - name: Define env_file_path from env_name and service_name
   set_fact:
