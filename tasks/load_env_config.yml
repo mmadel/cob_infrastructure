@@ -15,11 +15,12 @@
   vars:
     env_file_path: "/cob-env-config/{{ env_name }}/{{ service_name }}/{{ service_name }}.env"
   tags: env_config
-
 - name: Debug raw_env_vars (optional)
   debug:
     var: raw_env_vars
     var: env_file_path
+    var: env_name
+    var: service_name
   tags: [debug, env_config]
 
 # Convert list of "KEY=VALUE" to dict
