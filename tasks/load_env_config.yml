@@ -19,9 +19,9 @@
   register: slurped_env_file
   tags: env_config
 
-- name: Set raw_env_lines from base64-decoded content
+- name: Set raw_env_vars from base64-decoded content
   set_fact:
-    raw_env_lines: "{{ slurped_env_file['content'] | b64decode | split('\n') }}"
+    raw_env_vars: "{{ slurped_env_file['content'] | b64decode | split('\n') }}"
   tags: env_config
 
 - name: Debug raw_env_vars (optional)
