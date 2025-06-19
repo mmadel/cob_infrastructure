@@ -11,7 +11,7 @@
 # Load plain .env key=value as list of strings
 - name: Load .env file as list of key=value strings
   set_fact:
-    raw_env_vars: "{{ lookup('ini', path=env_file_path, delimiter='=') }}"
+    raw_env_vars: "{{ lookup('ini', path=env_file_path, delimiter='=', sectionless=True) }}"
   vars:
     env_file_path: "/cob-env-config/{{ env_name }}/{{ service_name }}/{{ service_name }}.env"
   tags: env_config
