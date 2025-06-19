@@ -21,7 +21,7 @@
 
 - name: Set raw_env_lines from base64-decoded content
   set_fact:
-    raw_env_lines: "{{ slurped_env_file['content'] | b64decode | splitlines() }}"
+    raw_env_lines: "{{ slurped_env_file['content'] | b64decode | split('\n') }}"
   tags: env_config
 
 - name: Parse raw .env lines into key=value pairs
