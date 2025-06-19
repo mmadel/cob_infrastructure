@@ -27,10 +27,13 @@
 - name: Debug raw_env_vars (optional)
   debug:
     var: raw_env_vars
-
+- name: Initialize parsed_env_vars
+  set_fact:
+    parsed_env_vars: {}
+  tags: env_config
 - name: Convert raw .env lines to dictionary
   set_fact:
-    parsed_env_vars: "{{ raw_env_lines
+    parsed_env_vars: "{{ parsed_env_vars
       | select('match', '^[^#\\s].*=.*$')
       | map('regex_replace', '^\\s*(.*?)\\s*=\\s*(.*?)\\s*$', '\\1=\\2')
       | map('split', '=', 1)
