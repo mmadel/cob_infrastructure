@@ -1,32 +1,29 @@
 ---
-# Inputs required: 'env_name' and 'service_name' should be defined before this task is imported.
+# Inputs required: 'env_name' and 'service_name' must be defined before importing this task
 
-# - name: Clone cob-env-config repo
-#   git:
-#     repo: "https://github.com/mmadel/cob-environment-configuration.git"
-#     dest: "/cob-env-config"
-#     update: yes
-#   tags: env_config
-
-- name: Define env_file_path from env_name and service_name
-  set_fact:
-    env_file_path: "/cob-env-config/{{ env_name }}/{{ service_name }}/{{ service_name }}.env"
+- name: Clone cob-env-config repo
+  git:
+    repo: "https://github.com/mmadel/cob-environment-configuration.git"
+    dest: "/cob-env-config"
+    update: yes
   tags: env_config
 
-- name: Read .env file content from remote VPS
+- name: Read .env file as raw lines
   slurp:
-    src: "{{ env_file_path }}"
+    src: "/cob-env-config/{{ env_name }}/{{ service_name }}/{{ service_name }}.env"
   register: slurped_env_file
   tags: env_config
 
-- name: Set raw_env_vars from base64-decoded content
+- name: Set raw_env_lines from base64-decoded content
   set_fact:
-    raw_env_vars: "{{ slurped_env_file['content'] | b64decode | split('\n') }}"
+    raw_env_lines: "{{ slurped_env_file['content'] | b64decode | splitlines() }}"
   tags: env_config
 
-- name: Debug raw_env_vars (optional)
+- name: Debug raw_env_lines (optional)
   debug:
-    var: raw_env_vars
+    var: raw_env_lines
+  tags: [debug, env_config]
+
 - name: Initialize parsed_env_vars
   set_fact:
     parsed_env_vars: {}
@@ -36,29 +33,26 @@
   set_fact:
     parsed_env_vars: "{{ parsed_env_vars | combine({ item.split('=')[0]: item.split('=')[1] }) }}"
   loop: "{{ raw_env_lines | select('match', '^[^#\\s].*=.*$') }}"
-  when: "=" in item
+  when: "'=' in item"
   tags: env_config
 
-# Export needed plain values
 - name: Export parsed env vars
   set_fact:
     db_user: "{{ parsed_env_vars.DB_USER }}"
     databases: "{{ parsed_env_vars.DATABASE.split(',') }}"
-    # Add more as needed: parsed_env_vars.SOME_OTHER_KEY
+    # Add more vars if needed
   tags: env_config
 
-# Load encrypted vars from Vault (YAML)
 - name: Load encrypted secrets from vault
   include_vars:
     file: "/cob-env-config/{{ env_name }}/{{ service_name }}/{{ service_name }}-secrets.env.vault"
     name: secrets
   tags: env_config
 
-# Flatten secrets for easy access
 - name: Export secret values
   set_fact:
     db_user_password: "{{ secrets.db_user_password | default('') }}"
     db_root_password: "{{ secrets.db_root_password | default('') }}"
     jwt_secret: "{{ secrets.jwt_secret | default('') }}"
-    # Add more secrets if needed
+    # Add more as needed
   tags: env_config
