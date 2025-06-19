@@ -18,7 +18,6 @@
 - name: Debug raw_env_vars (optional)
   debug:
     var: env_name
-    var: service_name
   tags: [debug, env_config]
 
 # Convert list of "KEY=VALUE" to dict
