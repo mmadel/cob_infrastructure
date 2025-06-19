@@ -47,6 +47,7 @@
   include_vars:
     file: "/cob-env-config/{{ env_name }}/{{ service_name }}/{{ service_name }}-secrets.env.vault"
     name: secrets
+    remote: yes
   tags: env_config
 
 - name: Export secret values
