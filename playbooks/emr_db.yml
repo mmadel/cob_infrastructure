@@ -1,7 +1,10 @@
 ---
 - name: Provision DB for EMR
-- hosts: emr
+  hosts: emr
   become: yes
   gather_facts: false
+  vars:
+    env_name: testing
+    service_name: emr
   roles:
     - mysql
