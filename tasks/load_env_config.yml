@@ -8,12 +8,12 @@
     update: yes
   tags: env_config
 
-# Load plain .env key=value as list of strings
+# Load plain environment variables from .env file
 - name: Load .env file as list of key=value strings
   vars:
     env_file_path: "/cob-env-config/{{ env_name }}/{{ service_name }}/{{ service_name }}.env"
   tags: env_config
-  
+
 - name: Debug env_file_path (optional)
   debug:
     var: env_file_path
