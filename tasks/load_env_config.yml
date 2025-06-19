@@ -13,9 +13,15 @@
     env_file_path: "/cob-env-config/{{ env_name }}/{{ service_name }}/{{ service_name }}.env"
   tags: env_config
 
-- name: Read .env file as raw lines
+- name: Read .env file content from remote VPS
+  slurp:
+    src: "{{ env_file_path }}"
+  register: slurped_env_file
+  tags: env_config
+
+- name: Set raw_env_lines from base64-decoded content
   set_fact:
-    raw_env_lines: "{{ lookup('file', env_file_path).splitlines() }}"
+    raw_env_lines: "{{ slurped_env_file['content'] | b64decode | splitlines() }}"
   tags: env_config
 
 - name: Parse raw .env lines into key=value pairs
