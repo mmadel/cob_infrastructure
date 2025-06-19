@@ -19,6 +19,7 @@
 - name: Debug raw_env_vars (optional)
   debug:
     var: raw_env_vars
+    var: env_file_path
   tags: [debug, env_config]
 
 # Convert list of "KEY=VALUE" to dict
