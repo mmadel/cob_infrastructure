@@ -17,7 +17,7 @@
   tags: env_config
 - name: Debug env_file_path (optional)
   debug:
-    var: "/cob-env-config/{{ env_name }}/{{ service_name }}/{{ service_name }}.env"
+    var: env_file_path
 - name: Debug env_name (optional)
   debug:
     var: env_name
