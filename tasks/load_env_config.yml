@@ -7,7 +7,7 @@
 - name: Clone cob-env-config repo
   git:
     repo: "https://github.com/mmadel/cob-environment-configuration.git"
-    dest: "./cob-environment-configuration"
+    dest: "/cob-environment-configuration"
     update: yes
   tags: env_config
 
