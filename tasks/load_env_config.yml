@@ -31,14 +31,12 @@
   set_fact:
     parsed_env_vars: {}
   tags: env_config
-- name: Convert raw .env lines to dictionary
+
+- name: Convert raw_env_lines to dictionary (Jinja2-safe loop)
   set_fact:
-    parsed_env_vars: "{{ parsed_env_vars
-      | select('match', '^[^#\\s].*=.*$')
-      | map('regex_replace', '^\\s*(.*?)\\s*=\\s*(.*?)\\s*$', '\\1=\\2')
-      | map('split', '=', 1)
-      | list
-      | dict }}"
+    parsed_env_vars: "{{ parsed_env_vars | combine({ item.split('=')[0]: item.split('=')[1] }) }}"
+  loop: "{{ raw_env_lines | select('match', '^[^#\\s].*=.*$') }}"
+  when: "=" in item
   tags: env_config
 
 # Export needed plain values
