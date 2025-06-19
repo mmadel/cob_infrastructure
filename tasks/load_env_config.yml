@@ -24,16 +24,6 @@
     raw_env_lines: "{{ slurped_env_file['content'] | b64decode | split('\n') }}"
   tags: env_config
 
-- name: Parse raw .env lines into key=value pairs
-  set_fact:
-   raw_env_vars: "{{ raw_env_lines
-    | reject('match', '^#')
-    | reject('match', '^\\s*$')
-    | map('regex_replace', '^\\s*(.*?)\\s*=\\s*(.*?)\\s*$', '\\1=\\2')
-    | map('split', '=', 1)
-    | items2dict }}"
-  tags: env_config
-
 - name: Debug raw_env_vars (optional)
   debug:
     var: raw_env_vars
