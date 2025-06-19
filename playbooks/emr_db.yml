@@ -6,12 +6,12 @@
   vars:
     env_name: testing
     service_name: emr
-    pre_tasks:
-    - name: Load env config
-      import_tasks: ../tasks/load_env_config.yml
+  pre_tasks:
+  - name: Load env config
+    import_tasks: ../tasks/load_env_config.yml
 
-    - name: Debug DB variables (check if loaded correctly)
-      debug:
+  - name: Debug DB variables (check if loaded correctly)
+    debug:
         msg:
           - "DB User: {{ db_user }}"
           - "Databases: {{ databases }}"
