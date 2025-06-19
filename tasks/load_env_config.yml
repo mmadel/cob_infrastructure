@@ -30,11 +30,12 @@
 
 - name: Convert raw .env lines to dictionary
   set_fact:
-    parsed_env_vars: "{{ raw_env_vars
+    parsed_env_vars: "{{ raw_env_lines
       | select('match', '^[^#\\s].*=.*$')
       | map('regex_replace', '^\\s*(.*?)\\s*=\\s*(.*?)\\s*$', '\\1=\\2')
       | map('split', '=', 1)
-      | items2dict }}"
+      | list
+      | dict }}"
   tags: env_config
 
 # Export needed plain values
