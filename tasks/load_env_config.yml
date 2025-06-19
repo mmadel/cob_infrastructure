@@ -1,42 +1,52 @@
 ---
-# Inputs: expects you to define 'env_name' and 'service_name' before importing this task
-# Example:
-# env_name: testing
-# service_name: emr
+# Inputs required: 'env_name' and 'service_name' should be defined before this task is imported.
 
 - name: Clone cob-env-config repo
   git:
     repo: "https://github.com/mmadel/cob-environment-configuration.git"
-    dest: "/cob-environment-configuration"
+    dest: "/cob-env-config"
     update: yes
   tags: env_config
 
-- name: Load plain env vars from cob-env-config
+# Load plain .env key=value as list of strings
+- name: Load .env file as list of key=value strings
   set_fact:
-    env_vars: "{{ lookup('ini', path=env_file_path, delimiter='=') }}"
+    raw_env_vars: "{{ lookup('ini', path=env_file_path, delimiter='=') }}"
   vars:
     env_file_path: "/cob-env-config/{{ env_name }}/{{ service_name }}/{{ service_name }}.env"
   tags: env_config
-- name: Debug env_vars raw content
+
+- name: Debug raw_env_vars (optional)
   debug:
-    var: env_vars
-- name: Parse structured vars from .env
+    var: raw_env_vars
+  tags: [debug, env_config]
+
+# Convert list of "KEY=VALUE" to dict
+- name: Convert raw_env_vars to dictionary
   set_fact:
-    db_user: "{{ env_vars.DB_USER }}"
-    databases: "{{ env_vars.DATABASE.split(',') }}"
-    # Add more plain vars here if needed
+    parsed_env_vars: "{{ raw_env_vars | map('split', '=', 1) | items2dict }}"
   tags: env_config
 
+# Export needed plain values
+- name: Export parsed env vars
+  set_fact:
+    db_user: "{{ parsed_env_vars.DB_USER }}"
+    databases: "{{ parsed_env_vars.DATABASE.split(',') }}"
+    # Add more as needed: parsed_env_vars.SOME_OTHER_KEY
+  tags: env_config
+
+# Load encrypted vars from Vault (YAML)
 - name: Load encrypted secrets from vault
   include_vars:
-    file: "cob-env-config/{{ env_name }}/{{ service_name }}/{{ service_name }}-secrets.env.vault"
+    file: "/cob-env-config/{{ env_name }}/{{ service_name }}/{{ service_name }}-secrets.env.vault"
     name: secrets
   tags: env_config
 
-- name: Flatten secrets for easier use
+# Flatten secrets for easy access
+- name: Export secret values
   set_fact:
     db_user_password: "{{ secrets.db_user_password | default('') }}"
     db_root_password: "{{ secrets.db_root_password | default('') }}"
     jwt_secret: "{{ secrets.jwt_secret | default('') }}"
-    # Add more secrets here as needed
+    # Add more secrets if needed
   tags: env_config
