@@ -8,28 +8,32 @@
 #     update: yes
 #   tags: env_config
 
-- name: Define env_file_path from env_name and service_name
+- name: Read .env file as raw lines
   set_fact:
-    env_file_path: "/cob-env-config/{{ env_name }}/{{ service_name }}/{{ service_name }}.env"
+    raw_env_lines: "{{ lookup('file', env_file_path).splitlines() }}"
   tags: env_config
 
-- name: Debug env_file_path (optional)
-  debug:
-    var: env_file_path
-
-- name: Load .env file as list of key=value strings
+- name: Parse raw .env lines into key=value pairs
   set_fact:
-    raw_env_vars: "{{ lookup('ini', path=env_file_path, delimiter='=', sectionless=True) }}"
+    parsed_env_vars: >-
+      {{
+        raw_env_lines
+        | reject('match', '^#')       # skip comments
+        | reject('match', '^\\s*$')   # skip blank lines
+        | map('regex_replace', '^\\s*(.*?)\\s*=\\s*(.*?)\\s*$', '\\1=\\2')
+        | map('split', '=', 1)
+        | items2dict
+      }}
   tags: env_config
 
-- name: Debug raw_env_vars (optional)
+- name: Debug parsed_env_vars (optional)
   debug:
-    var: raw_env_vars
+    var: parsed_env_vars
 
 # Convert list of "KEY=VALUE" to dict
-- name: Convert raw_env_vars to dictionary
+- name: Convert parsed_env_vars to dictionary
   set_fact:
-    parsed_env_vars: "{{ raw_env_vars | map('split', '=', 1) | items2dict }}"
+    parsed_env_vars: "{{ parsed_env_vars | map('split', '=', 1) | items2dict }}"
   tags: env_config
 
 # Export needed plain values
