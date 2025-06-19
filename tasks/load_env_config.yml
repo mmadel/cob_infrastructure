@@ -8,6 +8,11 @@
 #     update: yes
 #   tags: env_config
 
+- name: Define env_file_path from env_name and service_name
+  set_fact:
+    env_file_path: "/cob-env-config/{{ env_name }}/{{ service_name }}/{{ service_name }}.env"
+  tags: env_config
+
 - name: Read .env file as raw lines
   set_fact:
     raw_env_lines: "{{ lookup('file', env_file_path).splitlines() }}"
@@ -15,7 +20,7 @@
 
 - name: Parse raw .env lines into key=value pairs
   set_fact:
-    parsed_env_vars: >-
+    raw_env_vars: >-
       {{
         raw_env_lines
         | reject('match', '^#')       # skip comments
@@ -26,14 +31,14 @@
       }}
   tags: env_config
 
-- name: Debug parsed_env_vars (optional)
+- name: Debug raw_env_vars (optional)
   debug:
-    var: parsed_env_vars
+    var: raw_env_vars
 
 # Convert list of "KEY=VALUE" to dict
-- name: Convert parsed_env_vars to dictionary
+- name: Convert raw_env_vars to dictionary
   set_fact:
-    parsed_env_vars: "{{ parsed_env_vars | map('split', '=', 1) | items2dict }}"
+    parsed_env_vars: "{{ raw_env_vars | map('split', '=', 1) | items2dict }}"
   tags: env_config
 
 # Export needed plain values
