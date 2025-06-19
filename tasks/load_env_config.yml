@@ -13,7 +13,7 @@
 
 - name: Load plain env vars from cob-env-config
   set_fact:
-    env_vars: "{{ lookup('ini', lookup('file', 'cob-environment-configuration/' ~ env_name ~ '/' ~ service_name ~ '/' ~ service_name ~ '.env'), delimiter='=') }}"
+    env_vars: "{{ lookup('ini', lookup('file', '/cob-environment-configuration/' ~ env_name ~ '/' ~ service_name ~ '/' ~ service_name ~ '.env'), delimiter='=') }}"
   tags: env_config
 
 - name: Parse structured vars from .env
