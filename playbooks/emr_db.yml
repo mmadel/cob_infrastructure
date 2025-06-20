@@ -15,6 +15,6 @@
         msg:
           - "DB User: {{ db_user }}"
           - "Databases: {{ databases }}"
-          - "Root Password: {{ db_root_password | default('not loaded') }}"
+          - "Root Password: {{ db_password | default('not loaded') }}"
   # roles:
   #   - mysql
