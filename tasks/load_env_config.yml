@@ -43,11 +43,15 @@
     # Add more vars if needed
   tags: env_config
 
-- name: Load encrypted secrets from vault
-  include_vars:
-    file: "/cob-env-config/{{ env_name }}/{{ service_name }}/{{ service_name }}-secrets.env.vault"
-    name: secrets
-    remote: yes
+- name: Slurp vault file from remote
+  slurp:
+    src: "/cob-env-config/{{ env_name }}/{{ service_name }}/{{ service_name }}-secrets.env.vault"
+  register: slurped_vault
+  tags: env_config
+
+- name: Decode and load secrets into 'secrets' fact
+  set_fact:
+    secrets: "{{ slurped_vault.content | b64decode | from_yaml }}"
   tags: env_config
 
 - name: Export secret values
@@ -55,5 +59,5 @@
     db_user_password: "{{ secrets.db_user_password | default('') }}"
     db_root_password: "{{ secrets.db_root_password | default('') }}"
     jwt_secret: "{{ secrets.jwt_secret | default('') }}"
-    # Add more as needed
+    # Add more if needed
   tags: env_config
