@@ -62,12 +62,3 @@
     db_password: "{{ secrets.db_password | default('') }}"
     jwt_secret: "{{ secrets.jwt_secret | default('') }}"
   tags: env_config
-
-# Debug for validation
-- name: Debug DB variables (optional)
-  debug:
-    msg:
-      - "DB User: {{ db_user }}"
-      - "Databases: {{ databases }}"
-      - "Secrets: {{ secrets }}"
-  tags: env_config
