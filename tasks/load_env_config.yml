@@ -1,22 +1,22 @@
 ---
-# Inputs required: 'env_name' and 'service_name' must be defined before importing this task
+# Required inputs: 'env_name' and 'service_name' must be defined before importing this task.
 
-- name: Clone cob-env-config repo
+# Clone config repo locally (controller)
+- name: Clone cob-env-config repo to controller
   git:
     repo: "https://github.com/mmadel/cob-environment-configuration.git"
-    dest: "/cob-env-config"
+    dest: "./cob-env-config"
     update: yes
+  delegate_to: localhost
+  run_once: true
   tags: env_config
 
+# Load plain .env file from local clone (controller)
 - name: Read .env file as raw lines
-  slurp:
-    src: "/cob-env-config/{{ env_name }}/{{ service_name }}/{{ service_name }}.env"
-  register: slurped_env_file
-  tags: env_config
-
-- name: Set raw_env_lines from base64-decoded content
   set_fact:
-     raw_env_lines: "{{ slurped_env_file['content'] | b64decode | split('\n') }}"
+    raw_env_lines: "{{ lookup('file', './cob-env-config/' ~ env_name ~ '/' ~ service_name ~ '/' ~ service_name ~ '.env').split('\n') }}"
+  delegate_to: localhost
+  run_once: true
   tags: env_config
 
 - name: Debug raw_env_lines (optional)
@@ -24,45 +24,50 @@
     var: raw_env_lines
   tags: [debug, env_config]
 
+# Parse lines into key=value dict
 - name: Initialize parsed_env_vars
   set_fact:
     parsed_env_vars: {}
   tags: env_config
 
-- name: Convert raw_env_lines to dictionary (Jinja2-safe loop)
+- name: Convert raw_env_lines to dictionary
   set_fact:
     parsed_env_vars: "{{ parsed_env_vars | combine({ item.split('=')[0]: item.split('=')[1] }) }}"
   loop: "{{ raw_env_lines | select('match', '^[^#\\s].*=.*$') }}"
   when: "'=' in item"
+  delegate_to: localhost
+  run_once: true
   tags: env_config
 
+# Export specific plain vars
 - name: Export parsed env vars
   set_fact:
     db_user: "{{ parsed_env_vars.DB_USER }}"
     databases: "{{ parsed_env_vars.DATABASE.split(',') }}"
-    # Add more vars if needed
   tags: env_config
 
-- name: Slurp vault file from remote
-  slurp:
-    src: "/cob-env-config/{{ env_name }}/{{ service_name }}/{{ service_name }}-secrets.env.vault"
-  register: slurped_vault
+# Load encrypted secrets using Ansible Vault (controller-local)
+- name: Load encrypted secrets from vault
+  include_vars:
+    file: "./cob-env-config/{{ env_name }}/{{ service_name }}/{{ service_name }}-secrets.env.vault"
+    name: secrets
+  delegate_to: localhost
+  run_once: true
   tags: env_config
 
-- name: Decode and load secrets into 'secrets' fact
-  set_fact:
-    secrets: "{{ slurped_vault.content | b64decode | from_yaml }}"
-  tags: env_config
-
+# Export decrypted secret values
 - name: Export secret values
   set_fact:
     root_password: "{{ secrets.root_password | default('') }}"
     db_password: "{{ secrets.db_password | default('') }}"
     jwt_secret: "{{ secrets.jwt_secret | default('') }}"
-    # Add more if needed
   tags: env_config
-- name: Debug DB variables (check if loaded correctly)
+
+# Debug for validation
+- name: Debug DB variables (optional)
   debug:
     msg:
-      - "secrets: {{ secrets }}"
+      - "DB User: {{ db_user }}"
+      - "Databases: {{ databases }}"
+      - "Secrets: {{ secrets }}"
   tags: env_config
