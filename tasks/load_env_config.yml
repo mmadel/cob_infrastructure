@@ -61,3 +61,8 @@
     jwt_secret: "{{ secrets.jwt_secret | default('') }}"
     # Add more if needed
   tags: env_config
+- name: Debug DB variables (check if loaded correctly)
+  debug:
+    msg:
+      - "secrets: {{ secrets }}"
+  tags: env_config
