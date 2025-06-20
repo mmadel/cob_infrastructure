@@ -56,8 +56,8 @@
 
 - name: Export secret values
   set_fact:
-    db_user_password: "{{ secrets.db_user_password | default('') }}"
-    db_root_password: "{{ secrets.db_root_password | default('') }}"
+    root_password: "{{ secrets.root_password | default('') }}"
+    db_password: "{{ secrets.db_password | default('') }}"
     jwt_secret: "{{ secrets.jwt_secret | default('') }}"
     # Add more if needed
   tags: env_config
