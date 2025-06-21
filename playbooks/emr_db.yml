@@ -9,9 +9,9 @@
   pre_tasks:
   - name: Load env config
     import_tasks: ../tasks/load_env_config.yml
-  pre_tasks:
-  - name: set env variables
-    import_tasks: ../tasks/export_env_file.yml
+  # pre_tasks:
+  # - name: set env variables
+  #   import_tasks: ../tasks/export_env_file.yml
 
   - name: Debug DB variables (check if loaded correctly)
     debug:
