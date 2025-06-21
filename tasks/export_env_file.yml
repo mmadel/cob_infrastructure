@@ -1,0 +1,43 @@
+---
+# This task assumes the following variables are already available:
+# - parsed_env_vars (loaded from emr.env)
+# - secrets (loaded from emr-secrets.env.vault)
+# - service_name (e.g., "emr")
+
+- name: Ensure service directory exists
+  file:
+    path: "/opt/{{ service_name }}"
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  become: true
+  tags: export_env
+
+- name: Export merged env vars into /opt/{{ service_name }}/.env
+  copy:
+    dest: "/opt/{{ service_name }}/.env"
+    content: |
+      {% for key, value in parsed_env_vars.items() %}
+      {{ key }}={{ value }}
+      {% endfor %}
+      {% for key, value in secrets.items() %}
+      {{ key }}={{ value }}
+      {% endfor %}
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+  tags: export_env
+
+- name: Debug exported .env file (optional)
+  shell: cat /opt/{{ service_name }}/.env
+  register: env_file_output
+  changed_when: false
+  become: true
+  tags: [debug, export_env]
+
+- name: Show contents of exported .env file (optional)
+  debug:
+    var: env_file_output.stdout
+  tags: [debug, export_env]
