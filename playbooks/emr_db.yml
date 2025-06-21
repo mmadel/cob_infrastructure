@@ -20,5 +20,5 @@
   tasks:
     - name: Export .env file to remote VPS
       import_tasks: ../tasks/export_env_file.yml
-  roles:
-    - mysql
+  # roles:
+  #   - mysql
