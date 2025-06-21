@@ -9,9 +9,7 @@
   pre_tasks:
   - name: Load env config
     import_tasks: ../tasks/load_env_config.yml
-  # pre_tasks:
-  # - name: set env variables
-  #   import_tasks: ../tasks/export_env_file.yml
+    
 
   - name: Debug DB variables (check if loaded correctly)
     debug:
@@ -19,5 +17,8 @@
           - "DB User: {{ db_user }}"
           - "Databases: {{ databases }}"
           - "Root Password: {{ db_password | default('not loaded') }}"
-  # roles:
-  #   - mysql
+  tasks:
+    - name: Export .env file to remote VPS
+      import_tasks: ../tasks/export_env_file.yml
+  roles:
+    - mysql
