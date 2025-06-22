@@ -1,0 +1,14 @@
+[Unit]
+Description=demo Spring Boot Application
+After=network.target
+
+[Service]
+EnvironmentFile=/opt/{{ service_name }}/.env
+ExecStart=/usr/bin/java -jar /opt/{{ service_name }}/{{ service_name }}.jar
+SuccessExitStatus=143
+User=root
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
