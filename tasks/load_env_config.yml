@@ -1,64 +1,36 @@
----
-# Required inputs: 'env_name' and 'service_name' must be defined before importing this task.
+# Load infra config for Ansible
 
-# Clone config repo locally (controller)
-- name: Clone cob-env-config repo to controller
-  git:
-    repo: "https://github.com/mmadel/cob-environment-configuration.git"
-    dest: "./cob-env-config"
-    update: yes
-  delegate_to: localhost
-  run_once: true
-  tags: env_config
+- name: Read infra .env file as raw lines
+  slurp:
+    src: "/cob-env-config/{{ env_name }}/{{ service_name }}/infra-{{ service_name }}.env"
+  register: slurped_infra_env
 
-# Load plain .env file from local clone (controller)
-- name: Read .env file as raw lines
+- name: Set raw_infra_env_lines
   set_fact:
-    raw_env_lines: "{{ lookup('file', './cob-env-config/' ~ env_name ~ '/' ~ service_name ~ '/' ~ service_name ~ '.env').split('\n') }}"
-  delegate_to: localhost
-  run_once: true
-  tags: env_config
+    raw_infra_env_lines: "{{ slurped_infra_env.content | b64decode | split('\n') }}"
 
-- name: Debug raw_env_lines (optional)
-  debug:
-    var: raw_env_lines
-  tags: [debug, env_config]
-
-# Parse lines into key=value dict
-- name: Initialize parsed_env_vars
+- name: Convert raw_infra_env_lines to dictionary
   set_fact:
-    parsed_env_vars: {}
-  tags: env_config
-
-- name: Convert raw_env_lines to dictionary
-  set_fact:
-    parsed_env_vars: "{{ parsed_env_vars | combine({ item.split('=')[0]: item.split('=')[1] }) }}"
-  loop: "{{ raw_env_lines | select('match', '^[^#\\s].*=.*$') }}"
+    parsed_infra_env_vars: "{{ parsed_infra_env_vars | default({}) | combine({ item.split('=')[0]: item.split('=')[1] }) }}"
+  loop: "{{ raw_infra_env_lines | select('match', '^[^#\\s].*=.*$') }}"
   when: "'=' in item"
-  delegate_to: localhost
-  run_once: true
-  tags: env_config
 
-# Export specific plain vars
-- name: Export parsed env vars
+- name: Export infra vars
   set_fact:
-    db_user: "{{ parsed_env_vars.DB_USER }}"
-    databases: "{{ parsed_env_vars.DATABASE.split(',') }}"
-  tags: env_config
+    db_user: "{{ parsed_infra_env_vars.DB_USER }}"
+    databases: "{{ parsed_infra_env_vars.DATABASE.split(',') }}"
+    # Add more as needed
 
-# Load encrypted secrets using Ansible Vault (controller-local)
-- name: Load encrypted secrets from vault
-  include_vars:
-    file: "./cob-env-config/{{ env_name }}/{{ service_name }}/{{ service_name }}-secrets.env.vault"
-    name: secrets
-  delegate_to: localhost
-  run_once: true
-  tags: env_config
+- name: Load infra secrets
+  slurp:
+    src: "/cob-env-config/{{ env_name }}/{{ service_name }}/infra-{{ service_name }}-secrets.env.vault"
+  register: slurped_infra_vault
 
-# Export decrypted secret values
-- name: Export secret values
+- name: Decode infra secrets
   set_fact:
-    root_password: "{{ secrets.root_password | default('') }}"
+    secrets: "{{ slurped_infra_vault.content | b64decode | from_yaml }}"
+
+- name: Export infra secrets
+  set_fact:
     db_password: "{{ secrets.db_password | default('') }}"
-    jwt_secret: "{{ secrets.jwt_secret | default('') }}"
-  tags: env_config
+    root_password: "{{ secrets.root_password | default('') }}"

@@ -1,84 +1,38 @@
----
-# This task assumes the following variables are already available:
-# - parsed_env_vars (loaded from emr.env)
-# - secrets (loaded from emr-secrets.env.vault)
-# - service_name (e.g., "emr")
+- name: Read service .env file as raw lines
+  slurp:
+    src: "/cob-env-config/{{ env_name }}/{{ service_name }}/service-{{ service_name }}.env"
+  register: slurped_service_env
 
-- name: Ensure service directory exists
-  file:
-    path: "/opt/{{ service_name }}"
-    state: directory
-    mode: '0755'
-    owner: root
-    group: root
-  become: true
-  tags: export_env
+- name: Set raw_service_env_lines
+  set_fact:
+    raw_service_env_lines: "{{ slurped_service_env.content | b64decode | split('\n') }}"
 
-- name: Export merged env vars into /opt/{{ service_name }}/.env
+- name: Convert raw_service_env_lines to dictionary
+  set_fact:
+    parsed_service_env_vars: "{{ parsed_service_env_vars | default({}) | combine({ item.split('=')[0]: item.split('=')[1] }) }}"
+  loop: "{{ raw_service_env_lines | select('match', '^[^#\\s].*=.*$') }}"
+  when: "'=' in item"
+
+- name: Load service secrets
+  slurp:
+    src: "/cob-env-config/{{ env_name }}/{{ service_name }}/service-{{ service_name }}-secrets.env.vault"
+  register: slurped_service_vault
+
+- name: Decode service secrets
+  set_fact:
+    service_secrets: "{{ slurped_service_vault.content | b64decode | from_yaml }}"
+
+- name: Write combined .env file to VPS
   copy:
     dest: "/opt/{{ service_name }}/.env"
     content: |
-      {% for key, value in parsed_env_vars.items() %}
-      {{ key }}={{ value }}
+      {% for k, v in parsed_service_env_vars.items() %}
+      {{ k }}={{ v }}
       {% endfor %}
-      {% for key, value in secrets.items() %}
-      {{ key }}={{ value }}
+      {% for k, v in service_secrets.items() %}
+      {{ k }}={{ v }}
       {% endfor %}
     owner: root
     group: root
     mode: '0644'
   become: true
-  tags: export_env
-
-- name: Check if JAR exists
-  stat:
-    path: "/opt/{{ service_name }}/{{ service_name }}.jar"
-  register: jar_exists
-  tags: service
-- name: Create systemd service file for EMR if JAR exists
-  template:
-    src: demo.service.j2
-    dest: "/etc/systemd/system/{{ service_name }}.service"
-    owner: root
-    group: root
-    mode: '0644'
-  when: jar_exists.stat.exists
-  notify: Restart {{ service_name }}
-  become: true
-  tags: service
-
-
-- name: Reload systemd
-  systemd:
-    daemon_reload: yes
-  become: true
-  tags: service
-
-- name: Enable {{ service_name }} service
-  systemd:
-    name: "{{ service_name }}"
-    enabled: yes
-  become: true
-  when: jar_exists.stat.exists
-  tags: service
-
-- name: Start {{ service_name }} if not running
-  systemd:
-    name: "{{ service_name }}"
-    state: started
-  become: true
-  when: jar_exists.stat.exists
-  tags: service
-
-
-- name: Debug exported .env file (optional)
-  shell: cat /opt/{{ service_name }}/.env
-  register: env_file_output
-  changed_when: false
-  become: true
-  tags: [debug, export_env]
-
-- name: Show contents of exported .env file (optional)
-  debug:
-    var: env_file_output.stdout
-  tags: [debug, export_env]
