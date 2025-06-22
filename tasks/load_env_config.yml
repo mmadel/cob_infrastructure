@@ -1,5 +1,14 @@
 # Load infra config for Ansible
-
+# Clone config repo locally (controller)
+- name: Clone cob-env-config repo to controller
+  git:
+    repo: "https://github.com/mmadel/cob-environment-configuration.git"
+    dest: "./cob-env-config"
+    update: yes
+  delegate_to: localhost
+  run_once: true
+  tags: env_config
+  
 - name: Read infra .env file as raw lines
   slurp:
     src: "/cob-env-config/{{ env_name }}/{{ service_name }}/infra-{{ service_name }}.env"
