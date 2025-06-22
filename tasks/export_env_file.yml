@@ -1,38 +1,119 @@
-- name: Read service .env file as raw lines
-  slurp:
-    src: "/cob-env-config/{{ env_name }}/{{ service_name }}/service-{{ service_name }}.env"
-  register: slurped_service_env
+---
+# Required variables:
+# - env_name
+# - service_name
 
-- name: Set raw_service_env_lines
+# Read plain service-<name>.env from controller
+- name: Read plain service env from local clone
   set_fact:
-    raw_service_env_lines: "{{ slurped_service_env.content | b64decode | split('\n') }}"
+    raw_service_env_lines: "{{ lookup('file', './cob-env-config/' ~ env_name ~ '/' ~ service_name ~ '/service-' ~ service_name ~ '.env').split('\n') }}"
+  delegate_to: localhost
+  run_once: true
+  tags: export_env
 
-- name: Convert raw_service_env_lines to dictionary
+# Convert raw service env lines to dictionary
+- name: Initialize parsed_service_env
   set_fact:
-    parsed_service_env_vars: "{{ parsed_service_env_vars | default({}) | combine({ item.split('=')[0]: item.split('=')[1] }) }}"
+    parsed_service_env: {}
+  tags: export_env
+
+- name: Parse service env to dict
+  set_fact:
+    parsed_service_env: "{{ parsed_service_env | combine({ item.split('=')[0]: item.split('=')[1] }) }}"
   loop: "{{ raw_service_env_lines | select('match', '^[^#\\s].*=.*$') }}"
   when: "'=' in item"
+  delegate_to: localhost
+  run_once: true
+  tags: export_env
 
+# Load service secrets from vault
 - name: Load service secrets
-  slurp:
-    src: "/cob-env-config/{{ env_name }}/{{ service_name }}/service-{{ service_name }}-secrets.env.vault"
-  register: slurped_service_vault
+  include_vars:
+    file: "./cob-env-config/{{ env_name }}/{{ service_name }}/service-{{ service_name }}-secrets.env.vault"
+    name: service_secrets
+  delegate_to: localhost
+  run_once: true
+  tags: export_env
 
-- name: Decode service secrets
-  set_fact:
-    service_secrets: "{{ slurped_service_vault.content | b64decode | from_yaml }}"
+# Ensure service directory exists on target VPS
+- name: Ensure service directory exists
+  file:
+    path: "/opt/{{ service_name }}"
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  become: true
+  tags: export_env
 
-- name: Write combined .env file to VPS
+# Export merged environment variables to VPS
+- name: Export merged env vars to /opt/{{ service_name }}/.env
   copy:
     dest: "/opt/{{ service_name }}/.env"
     content: |
-      {% for k, v in parsed_service_env_vars.items() %}
-      {{ k }}={{ v }}
+      {% for key, value in parsed_service_env.items() %}
+      {{ key }}={{ value }}
       {% endfor %}
-      {% for k, v in service_secrets.items() %}
-      {{ k }}={{ v }}
+      {% for key, value in service_secrets.items() %}
+      {{ key }}={{ value }}
       {% endfor %}
     owner: root
     group: root
     mode: '0644'
   become: true
+  tags: export_env
+
+# Check if JAR exists
+- name: Check if JAR exists
+  stat:
+    path: "/opt/{{ service_name }}/{{ service_name }}.jar"
+  register: jar_exists
+  tags: service
+
+# Create systemd service file if JAR exists
+- name: Create systemd service file for {{ service_name }} if JAR exists
+  template:
+    src: "{{ service_name }}.service.j2"
+    dest: "/etc/systemd/system/{{ service_name }}.service"
+    owner: root
+    group: root
+    mode: '0644'
+  when: jar_exists.stat.exists
+  notify: Restart {{ service_name }}
+  become: true
+  tags: service
+
+- name: Reload systemd
+  systemd:
+    daemon_reload: yes
+  become: true
+  tags: service
+
+- name: Enable {{ service_name }} service
+  systemd:
+    name: "{{ service_name }}"
+    enabled: yes
+  become: true
+  when: jar_exists.stat.exists
+  tags: service
+
+- name: Start {{ service_name }} if not running
+  systemd:
+    name: "{{ service_name }}"
+    state: started
+  become: true
+  when: jar_exists.stat.exists
+  tags: service
+
+# Debug exported env file (optional)
+- name: Debug exported .env file (optional)
+  shell: cat /opt/{{ service_name }}/.env
+  register: env_file_output
+  changed_when: false
+  become: true
+  tags: [debug, export_env]
+
+- name: Show contents of exported .env file (optional)
+  debug:
+    var: env_file_output.stdout
+  tags: [debug, export_env]
