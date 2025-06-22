@@ -29,6 +29,12 @@
     mode: '0644'
   become: true
   tags: export_env
+
+- name: Check if JAR exists
+  stat:
+    path: "/opt/{{ service_name }}/{{ service_name }}.jar"
+  register: jar_exists
+  tags: service
 - name: Create systemd service file for EMR if JAR exists
   template:
     src: emr.service.j2
@@ -41,11 +47,6 @@
   become: true
   tags: service
 
-- name: Check if JAR exists
-  stat:
-    path: "/opt/{{ service_name }}/{{ service_name }}.jar"
-  register: jar_exists
-  tags: service
 
 - name: Reload systemd
   systemd:
