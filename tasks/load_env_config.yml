@@ -1,17 +1,17 @@
 # Load infra config for Ansible
 # Clone config repo locally (controller)
-- name: Clone cob-env-config repo to controller
+- name: Clone cob-environment-configuration repo to controller
   git:
     repo: "https://github.com/mmadel/cob-environment-configuration.git"
-    dest: "./cob-env-config"
+    dest: "./cob-environment-configuration"
     update: yes
   delegate_to: localhost
   run_once: true
   tags: env_config
-  
+
 - name: Read infra .env file as raw lines
   slurp:
-    src: "/cob-env-config/{{ env_name }}/{{ service_name }}/infra-{{ service_name }}.env"
+    src: "/cob-environment-configuration/{{ env_name }}/{{ service_name }}/infra-{{ service_name }}.env"
   register: slurped_infra_env
 
 - name: Set raw_infra_env_lines
@@ -32,7 +32,7 @@
 
 - name: Load infra secrets
   slurp:
-    src: "/cob-env-config/{{ env_name }}/{{ service_name }}/infra-{{ service_name }}-secrets.env.vault"
+    src: "/cob-environment-configuration/{{ env_name }}/{{ service_name }}/infra-{{ service_name }}-secrets.env.vault"
   register: slurped_infra_vault
 
 - name: Decode infra secrets
