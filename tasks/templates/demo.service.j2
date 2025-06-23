@@ -1,16 +1,18 @@
 [Unit]
-Description=demo Spring Boot Application
+Description={{ service_name }} Spring Boot Application
 After=network.target
 
 [Service]
-EnvironmentFile=/opt/{{ service_name }}/.env
-ExecStart=/usr/bin/java -jar /opt/{{ service_name }}/{{ service_name }}.jar
-StandardOutput=append:/var/log/{{service_name}}/{{service_name}}.log
-StandardError=append:/var/log/{{service_name}}/{{service_name}}-error.log
-SuccessExitStatus=143
 User=root
+EnvironmentFile=/opt/{{ service_name }}/.env
+ExecStartPre=/bin/bash -c '[ -f /opt/{{ service_name }}/{{ service_name }}.jar ] || exit 1'
+ExecStart=/usr/bin/java -jar /opt/{{ service_name }}/{{ service_name }}.jar
+StandardOutput=append:/var/log/{{ service_name }}/{{ service_name }}.log
+StandardError=append:/var/log/{{ service_name }}/{{ service_name }}-error.log
+SuccessExitStatus=143
 Restart=always
 RestartSec=5
+SyslogIdentifier={{ service_name }}
 
 [Install]
 WantedBy=multi-user.target

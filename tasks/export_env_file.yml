@@ -3,7 +3,6 @@
 # - env_name
 # - service_name
 
-# Read plain service-<name>.env from controller
 - name: Read plain service env from local clone
   set_fact:
     raw_service_env_lines: "{{ lookup('file', './cob-env-config/' ~ env_name ~ '/' ~ service_name ~ '/service-' ~ service_name ~ '.env').split('\n') }}"
@@ -11,7 +10,6 @@
   run_once: true
   tags: export_env
 
-# Convert raw service env lines to dictionary
 - name: Initialize parsed_service_env
   set_fact:
     parsed_service_env: {}
@@ -26,7 +24,6 @@
   run_once: true
   tags: export_env
 
-# Load service secrets from vault
 - name: Load service secrets
   include_vars:
     file: "./cob-env-config/{{ env_name }}/{{ service_name }}/service-{{ service_name }}-secrets.env.vault"
@@ -35,7 +32,6 @@
   run_once: true
   tags: export_env
 
-# Ensure service directory exists on target VPS
 - name: Ensure service directory exists
   file:
     path: "/opt/{{ service_name }}"
@@ -46,7 +42,16 @@
   become: true
   tags: export_env
 
-# Export merged environment variables to VPS
+- name: Ensure log directory exists
+  file:
+    path: "/var/log/{{ service_name }}"
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  become: true
+  tags: export_env
+
 - name: Export merged env vars to /opt/{{ service_name }}/.env
   copy:
     dest: "/opt/{{ service_name }}/.env"
@@ -63,22 +68,13 @@
   become: true
   tags: export_env
 
-# Check if JAR exists
-- name: Check if JAR exists
-  stat:
-    path: "/opt/{{ service_name }}/{{ service_name }}.jar"
-  register: jar_exists
-  tags: service
-
-# Create systemd service file if JAR exists
-- name: Create systemd service file for {{ service_name }} if JAR exists
+- name: Create systemd service file for {{ service_name }}
   template:
     src: "{{ service_name }}.service.j2"
     dest: "/etc/systemd/system/{{ service_name }}.service"
     owner: root
     group: root
     mode: '0644'
-  when: jar_exists.stat.exists
   notify: Restart {{ service_name }}
   become: true
   tags: service
@@ -94,18 +90,8 @@
     name: "{{ service_name }}"
     enabled: yes
   become: true
-  when: jar_exists.stat.exists
   tags: service
 
-- name: Start {{ service_name }} if not running
-  systemd:
-    name: "{{ service_name }}"
-    state: started
-  become: true
-  when: jar_exists.stat.exists
-  tags: service
-
-# Debug exported env file (optional)
 - name: Debug exported .env file (optional)
   shell: cat /opt/{{ service_name }}/.env
   register: env_file_output
