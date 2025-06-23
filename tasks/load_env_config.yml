@@ -43,7 +43,7 @@
 - name: Export parsed env vars
   set_fact:
     db_user: "{{ parsed_env_vars.db_user | default('') }}"
-    databases: "{{ parsed_env_vars.database.split(',') }}"
+    database: "{{ parsed_env_vars.database.split(',') }}"
     # Add more infra keys as needed
   tags: env_config
 
