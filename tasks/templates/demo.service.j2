@@ -5,8 +5,8 @@ After=network.target
 [Service]
 EnvironmentFile=/opt/{{ service_name }}/.env
 ExecStart=/usr/bin/java -jar /opt/{{ service_name }}/{{ service_name }}.jar
-StandardOutput=file:/var/log/${service_name}/${service_name}.log
-StandardError=file:/var/log/${service_name}/${service_name}-error.log
+StandardOutput=file:/var/log/{{service_name}}/{{service_name}}.log
+StandardError=file:/var/log/{{service_name}}/{{service_name}}-error.log
 SuccessExitStatus=143
 User=root
 Restart=always
