@@ -15,7 +15,7 @@
     debug:
         msg:
           - "DB User: {{ db_user }}"
-          - "Databases: {{ databases }}"
+          - "Databases: {{ database }}"
           - "Root Password: {{ db_password | default('not loaded') }}"
   tasks:
     - name: Export .env file to remote VPS
