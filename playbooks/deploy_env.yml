@@ -9,4 +9,4 @@
     service_name: "demo"
 
   tasks:
-    - import_tasks: ../tasks/export_env.yml
+    - import_tasks: ../tasks/export_env_file.yml
