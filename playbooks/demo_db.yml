@@ -6,6 +6,8 @@
   vars:
     env_name: testing
     service_name: demo
+  handlers:
+    - import_tasks: ../tasks/handlers/main.yml
   pre_tasks:
   - name: Load env config
     import_tasks: ../tasks/load_env_config.yml
