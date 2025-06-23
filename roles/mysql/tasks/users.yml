@@ -1,4 +1,8 @@
 ---
+- name: Debug DB-- (optional)
+  debug:
+    var: database
+  tags: [debug, env_config]
 - name: Ensure MySQL databases are created
   community.mysql.mysql_db:
     name: "{{ item }}"
