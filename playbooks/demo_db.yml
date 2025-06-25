@@ -1,5 +1,5 @@
 ---
-- name: Provision DB for EMR
+- name: Provision DB for Demo Service
   hosts: demo
   become: yes
   gather_facts: false
