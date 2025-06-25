@@ -1,69 +1,63 @@
-- name: Secure MySQL installation
-  hosts: db
+- name: Check current plugin for root user
+  community.mysql.mysql_query:
+    login_unix_socket: "{{ mysql_socket }}"
+    query: "SELECT plugin FROM mysql.user WHERE user='root' AND host='localhost';"
+  register: root_plugin
   become: true
-  vars:
-    root_password: "YourSecureRootPassword"
-    mysql_socket: /run/mysqld/mysqld.sock
 
-  tasks:
+- name: Set root password and switch to mysql_native_password if needed
+  community.mysql.mysql_user:
+    name: root
+    host: localhost
+    password: "{{ root_password }}"
+    plugin: mysql_native_password
+    priv: "*.*:ALL,GRANT"
+    state: present
+    login_unix_socket: "{{ mysql_socket }}"
+  when: root_plugin.query_result[0][0].plugin != "mysql_native_password"
+  become: true
 
-    - name: Check current plugin for root user
-      community.mysql.mysql_query:
-        login_unix_socket: "{{ mysql_socket }}"
-        query: "SELECT plugin FROM mysql.user WHERE user='root' AND host='localhost';"
-      register: root_plugin
+- name: Remove anonymous MySQL users
+  community.mysql.mysql_user:
+    name: ''
+    host_all: yes
+    state: absent
+    login_user: root
+    login_password: "{{ root_password }}"
+  become: true
 
-    - name: Debug current plugin (optional)
-      debug:
-        var: root_plugin.query_result[0][0].plugin
+- name: Remove MySQL test database
+  community.mysql.mysql_db:
+    name: test
+    state: absent
+    login_user: root
+    login_password: "{{ root_password }}"
+  become: true
 
-    - name: Set root password and change plugin to mysql_native_password if needed
-      community.mysql.mysql_user:
-        name: root
-        host: localhost
-        password: "{{ root_password }}"
-        plugin: mysql_native_password
-        priv: "*.*:ALL,GRANT"
-        state: present
-        login_unix_socket: "{{ mysql_socket }}"
-      when: root_plugin.query_result[0][0].plugin != "mysql_native_password"
+- name: Disallow root login remotely
+  community.mysql.mysql_user:
+    name: root
+    host: "%"
+    state: absent
+    login_user: root
+    login_password: "{{ root_password }}"
+  become: true
 
-    - name: Remove anonymous MySQL users
-      community.mysql.mysql_user:
-        name: ''
-        host_all: yes
-        state: absent
-        login_user: root
-        login_password: "{{ root_password }}"
+- name: Ensure root only allowed from localhost
+  community.mysql.mysql_user:
+    name: root
+    host: localhost
+    password: "{{ root_password }}"
+    plugin: mysql_native_password
+    priv: "*.*:ALL,GRANT"
+    state: present
+    login_user: root
+    login_password: "{{ root_password }}"
+  become: true
 
-    - name: Remove MySQL test database
-      community.mysql.mysql_db:
-        name: test
-        state: absent
-        login_user: root
-        login_password: "{{ root_password }}"
-
-    - name: Disallow root login remotely
-      community.mysql.mysql_user:
-        name: root
-        host: "%"
-        state: absent
-        login_user: root
-        login_password: "{{ root_password }}"
-
-    - name: Ensure root only allowed from localhost
-      community.mysql.mysql_user:
-        name: root
-        host: localhost
-        password: "{{ root_password }}"
-        plugin: mysql_native_password
-        priv: "*.*:ALL,GRANT"
-        state: present
-        login_user: root
-        login_password: "{{ root_password }}"
-
-    - name: Reload privilege tables
-      community.mysql.mysql_query:
-        query: "FLUSH PRIVILEGES;"
-        login_user: root
-        login_password: "{{ root_password }}"
+- name: Reload privilege tables
+  community.mysql.mysql_query:
+    query: "FLUSH PRIVILEGES;"
+    login_user: root
+    login_password: "{{ root_password }}"
+  become: true
