@@ -1,9 +1,24 @@
-- name: Check current plugin for root user
+- name: Try socket login to check plugin
   community.mysql.mysql_query:
     login_unix_socket: "{{ mysql_socket }}"
     query: "SELECT plugin FROM mysql.user WHERE user='root' AND host='localhost';"
-  register: root_plugin
+  register: root_plugin_socket
+  ignore_errors: true
   become: true
+
+- name: Try password login to check plugin (fallback)
+  community.mysql.mysql_query:
+    login_user: root
+    login_password: "{{ root_password }}"
+    query: "SELECT plugin FROM mysql.user WHERE user='root' AND host='localhost';"
+  register: root_plugin_password
+  when: root_plugin_socket.failed
+  ignore_errors: true
+  become: true
+
+- name: Set plugin result based on successful login method
+  set_fact:
+    root_plugin: "{{ root_plugin_socket if not root_plugin_socket.failed else root_plugin_password }}"
 
 - name: Set root password and switch to mysql_native_password if needed
   community.mysql.mysql_user:
@@ -13,7 +28,9 @@
     plugin: mysql_native_password
     priv: "*.*:ALL,GRANT"
     state: present
-    login_unix_socket: "{{ mysql_socket }}"
+    login_unix_socket: "{{ mysql_socket if not root_plugin_socket.failed else omit }}"
+    login_user: "{{ 'root' if root_plugin_socket.failed else omit }}"
+    login_password: "{{ root_password if root_plugin_socket.failed else omit }}"
   when: root_plugin.query_result[0][0].plugin != "mysql_native_password"
   become: true
 
