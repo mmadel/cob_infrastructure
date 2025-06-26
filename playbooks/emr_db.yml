@@ -4,8 +4,10 @@
   become: yes
   gather_facts: false
   vars:
-    env_name: testing
     service_name: emr
+    mysql_socket: /run/mysqld/mysqld.sock
+  handlers:
+    - import_tasks: ../tasks/handlers/main.yml
   pre_tasks:
   - name: Load env config
     import_tasks: ../tasks/load_env_config.yml
@@ -20,5 +22,5 @@
   tasks:
     - name: Export .env file to remote VPS
       import_tasks: ../tasks/export_env_file.yml
-  # roles:
-  #   - mysql
+  roles:
+    - mysql
