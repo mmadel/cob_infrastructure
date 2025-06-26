@@ -4,7 +4,6 @@
   become: yes
   gather_facts: false
   vars:
-    env_name: testing
     service_name: demo
     mysql_socket: /run/mysqld/mysqld.sock
   handlers:
