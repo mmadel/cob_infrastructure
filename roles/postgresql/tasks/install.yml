@@ -1,4 +1,5 @@
-- name: Install required packages
+---
+- name: Install PostgreSQL packages
   apt:
     name:
       - postgresql
@@ -9,57 +10,51 @@
     update_cache: yes
   become: true
 
-- name: Check if cluster config exists
+# ✅ Check for config and data dir
+- name: Check if config dir exists
   stat:
     path: /etc/postgresql/14/main
   register: pg_conf_dir
   become: true
 
-- name: Check if data directory exists
+- name: Check if data dir exists
   stat:
     path: /var/lib/postgresql/14/main
   register: pg_data_dir
   become: true
 
-- name: Remove broken cluster dirs if data is missing
+# 🧪 Check if cluster is ONLINE (exists and running)
+- name: Check if PostgreSQL cluster is online
+  shell: |
+    pg_lsclusters | grep -q "^14\s\+main\s\+[0-9]\+\s\+online"
+  register: cluster_status
+  changed_when: false
+  failed_when: false
+  become: true
+
+# 🧹 If config exists and data is missing or not online, delete both
+- name: Remove broken cluster dirs
   file:
     path: "{{ item }}"
     state: absent
   loop:
     - /etc/postgresql/14/main
     - /var/lib/postgresql/14/main
-  when:
-    - pg_conf_dir.stat.exists
-    - not pg_data_dir.stat.exists
+  when: >
+    pg_conf_dir.stat.exists and
+    (not pg_data_dir.stat.exists or cluster_status.rc != 0)
   become: true
 
-- name: Recreate clean cluster with logging
+# ✅ Create cluster only if not online
+- name: Create PostgreSQL 14 cluster if not already online
   shell: |
     pg_createcluster 14 main --start -- --auth-local=trust
   args:
-    creates: /var/lib/postgresql/14/main
-  register: cluster_creation
+    creates: /etc/postgresql/14/main
+  when: cluster_status.rc != 0
   become: true
 
-- name: Show cluster creation stdout
-  debug:
-    var: cluster_creation.stdout_lines
-
-- name: Show cluster creation stderr
-  debug:
-    var: cluster_creation.stderr_lines
-
-- name: Check PostgreSQL clusters after recreation
-  shell: pg_lsclusters
-  register: pg_clusters
-  become: true
-  failed_when: false
-
-- name: Print PostgreSQL clusters
-  debug:
-    var: pg_clusters.stdout_lines
-
-- name: Ensure PostgreSQL service is started and enabled
+- name: Ensure PostgreSQL service is enabled and running
   service:
     name: postgresql
     state: started
