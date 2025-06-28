@@ -2,14 +2,14 @@
 - name: Create application database user
   become: true
   become_user: postgres
-  postgresql_user:
+  community.postgresql.postgresql_user:
     name: "{{ db_user }}"
-    password: "{{ db_password | password_hash('md5') }}"
+    password: "{{ db_password_hash }}"
     role_attr_flags: CREATEDB,LOGIN
 
 - name: Create application database
   become: true
   become_user: postgres
-  postgresql_db:
+  community.postgresql.postgresql_db:
     name: "{{ app_db }}"
-    owner: "{{ database }}"
+    owner: "{{ db_user }}"
