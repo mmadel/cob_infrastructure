@@ -5,7 +5,6 @@
   gather_facts: false
   vars:
     service_name: billing
-    mysql_socket: /run/mysqld/mysqld.sock
   handlers:
     - import_tasks: ../tasks/handlers/main.yml
   pre_tasks:
