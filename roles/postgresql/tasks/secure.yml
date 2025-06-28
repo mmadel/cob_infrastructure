@@ -2,9 +2,9 @@
 - name: Set PostgreSQL admin password
   become: true
   become_user: postgres
-  postgresql_user:
+  community.postgresql.postgresql_user:
     name: postgres
-    password: "{{ postgres_admin_password | password_hash('md5') }}"
+    password: "{{ postgres_admin_password_hashed }}"
 
 - name: Configure `pg_hba.conf` to use md5 authentication
   lineinfile:
