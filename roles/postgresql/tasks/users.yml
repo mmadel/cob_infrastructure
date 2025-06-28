@@ -4,7 +4,7 @@
   become_user: postgres
   postgresql_user:
     name: "{{ db_user }}"
-    password: "{{ app_password | password_hash('md5') }}"
+    password: "{{ db_password | password_hash('md5') }}"
     role_attr_flags: CREATEDB,LOGIN
 
 - name: Create application database
