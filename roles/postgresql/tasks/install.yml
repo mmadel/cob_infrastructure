@@ -1,42 +1,26 @@
 ---
-- name: Ensure apt cache is updated
-  apt:
-    update_cache: true
-  become: true
-
-- name: Ensure required system packages are installed
+- name: Install required packages
   apt:
     name:
-      - gnupg
-      - lsb-release
-      - ca-certificates
-      - curl
-  become: true
-
-- name: Add PostgreSQL APT repository key
-  apt_key:
-    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
-    state: present
-  become: true
-
-- name: Add PostgreSQL APT repository
-  apt_repository:
-    repo: "deb http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
-    filename: "pgdg"
-    state: present
-  become: true
-
-- name: Install PostgreSQL and contrib packages
-  apt:
-    name:
-      - postgresql-16
+      - postgresql
       - postgresql-contrib
-      - python3-psycopg2
     state: present
+    update_cache: yes
   become: true
 
-- name: Create default PostgreSQL cluster if not exists (for version 16)
-  command: "pg_createcluster 16 main --start"
-  args:
-    creates: "/etc/postgresql/16/main"
+- name: Get installed PostgreSQL version
+  command: psql -V
+  register: pg_version_raw
+  changed_when: false
+  become: true
+
+- name: Extract PostgreSQL major version
+  set_fact:
+    pg_version: "{{ pg_version_raw.stdout.split(' ')[-1].split('.')[0] }}"
+
+- name: Ensure PostgreSQL service is started and enabled
+  service:
+    name: postgresql
+    state: started
+    enabled: true
   become: true

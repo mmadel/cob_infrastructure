@@ -1,16 +1,14 @@
 ---
-- name: Include install tasks
-  include_tasks: install.yml
+- include_tasks: install.yml
+- include_tasks: secure.yml
+- include_tasks: users.yml
 
-- name: Ensure PostgreSQL service is started and enabled
-  service:
-    name: postgresql
-    state: started
-    enabled: true
+- name: Copy PostgreSQL configuration file from template
+  template:
+    src: postgresql.conf.j2
+    dest: "/etc/postgresql/{{ pg_version }}/main/postgresql.conf"
+    owner: postgres
+    group: postgres
+    mode: '0644'
+  notify: Restart PostgreSQL
   become: true
-
-- name: Include secure tasks
-  include_tasks: secure.yml
-
-- name: Include user creation tasks
-  include_tasks: users.yml

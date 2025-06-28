@@ -1,1 +1,7 @@
+# PostgreSQL Configuration
 listen_addresses = '*'
+max_connections = 100
+shared_buffers = 256MB
+logging_collector = on
+log_directory = '/var/log/postgresql'
+log_filename = 'postgresql.log'
