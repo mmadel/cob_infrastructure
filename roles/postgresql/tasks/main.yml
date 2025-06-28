@@ -1,25 +1,12 @@
 ---
-# Control node: Ensure passlib is available for hashing
-- name: Ensure Python venv exists on control node
-  delegate_to: localhost
-  run_once: true
-  command: python3 -m venv ~/.ansible_venv
-  args:
-    creates: ~/.ansible_venv/bin/activate
+# Precompute the MD5 password hash (format: md5 + md5(password + username))
+# Example: password = "admin", username = "postgres"
+# echo -n 'adminpostgres' | md5sum => 5c1bfb887d472ba496d7d71b0b94b4ec
+# Final hash to use: md55c1bfb887d472ba496d7d71b0b94b4ec
 
-- name: Install passlib in venv on control node
-  delegate_to: localhost
-  run_once: true
-  command: ~/.ansible_venv/bin/pip install passlib
-  environment:
-    PIP_DISABLE_PIP_VERSION_CHECK: "1"
-
-# Control node: Ensure password hash filter works using Python from venv
-- name: Hash PostgreSQL password on control node
-  delegate_to: localhost
-  run_once: true
+- name: Set admin password hash fact
   set_fact:
-    postgres_admin_password_hashed: "{{ 'admin' | password_hash('md5') }}"
+    postgres_admin_password_hashed: "md55c1bfb887d472ba496d7d71b0b94b4ec"
 
 # Install and configure PostgreSQL on the target VPS
 - include_tasks: install.yml
