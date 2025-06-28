@@ -1,23 +1,30 @@
 ---
-- name: Create virtual environment for control dependencies
+- name: Ensure Python venv exists for Ansible password hashing
   delegate_to: localhost
   run_once: true
-  ansible.builtin.command:
-    cmd: python3 -m venv ~/.ansible_venv
+  command: python3 -m venv ~/.ansible_venv
   args:
     creates: ~/.ansible_venv/bin/activate
 
-- name: Install passlib in virtualenv
+- name: Install passlib in Ansible venv
   delegate_to: localhost
   run_once: true
-  ansible.builtin.command:
-    cmd: ~/.ansible_venv/bin/pip install passlib
+  command: ~/.ansible_venv/bin/pip install passlib
   environment:
     PIP_DISABLE_PIP_VERSION_CHECK: "1"
 
+- name: Ensure Ansible uses Python from venv
+  set_fact:
+    ansible_python_interpreter: "~/.ansible_venv/bin/python"
+
+# Start PostgreSQL provisioning
 - include_tasks: install.yml
+
 - include_tasks: secure.yml
+
 - include_tasks: users.yml
+
+- include_tasks: rotate_passwords.yml
 
 - name: Copy PostgreSQL configuration file from template
   template:
