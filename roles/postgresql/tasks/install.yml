@@ -10,6 +10,14 @@
     update_cache: yes
   become: true
 
+- name: Recreate PostgreSQL cluster if broken (Ubuntu/Debian)
+  shell: |
+    pg_dropcluster --stop 14 main || true
+    pg_createcluster 14 main --start
+  args:
+    creates: /var/lib/postgresql/14/main
+  become: true
+
 - name: Get installed PostgreSQL version
   command: psql -V
   register: pg_version_raw
