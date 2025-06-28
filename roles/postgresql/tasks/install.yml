@@ -20,6 +20,13 @@
   args:
     creates: /var/lib/postgresql/14/main
   become: true
+- name: Check existing PostgreSQL clusters
+  shell: pg_lsclusters
+  register: pg_clusters
+  become: true
+
+- debug:
+    var: pg_clusters.stdout_lines
 - name: Ensure PostgreSQL service is started and enabled
   service:
     name: postgresql
