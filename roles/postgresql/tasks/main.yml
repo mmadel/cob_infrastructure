@@ -1,14 +1,4 @@
 ---
-- name: Get installed PostgreSQL version
-  command: psql -V
-  register: pg_version_raw
-  changed_when: false
-  become: true
-
-- name: Extract PostgreSQL major version
-  set_fact:
-    pg_version: "{{ pg_version_raw.stdout.split(' ')[-1].split('.')[0] }}"
-
 - name: Include install tasks
   include_tasks: install.yml
 
