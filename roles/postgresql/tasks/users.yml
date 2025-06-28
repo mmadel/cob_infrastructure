@@ -3,7 +3,7 @@
   become: true
   become_user: postgres
   postgresql_user:
-    name: "{{ app_user }}"
+    name: "{{ db_user }}"
     password: "{{ app_password | password_hash('md5') }}"
     role_attr_flags: CREATEDB,LOGIN
 
@@ -12,4 +12,4 @@
   become_user: postgres
   postgresql_db:
     name: "{{ app_db }}"
-    owner: "{{ app_user }}"
+    owner: "{{ database }}"
