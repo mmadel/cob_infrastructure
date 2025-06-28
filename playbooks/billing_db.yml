@@ -1,6 +1,26 @@
 ---
-- name: Provision DB for billing
+- name: Provision DB for Billing
   hosts: billing
   become: yes
+  gather_facts: false
+  vars:
+    service_name: billing
+    mysql_socket: /run/mysqld/mysqld.sock
+  handlers:
+    - import_tasks: ../tasks/handlers/main.yml
+  pre_tasks:
+  - name: Load env config
+    import_tasks: ../tasks/load_env_config.yml
+    
+
+  - name: Debug DB variables (check if loaded correctly)
+    debug:
+        msg:
+          - "DB User: {{ db_user }}"
+          - "Databases: {{ database }}"
+          - "Root Password: {{ db_password | default('not loaded') }}"
+  tasks:
+    - name: Export .env file to remote VPS
+      import_tasks: ../tasks/export_env_file.yml
   roles:
-    - role: postgresql
+    - mysql
