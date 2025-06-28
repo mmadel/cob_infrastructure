@@ -9,7 +9,13 @@
     state: present
     update_cache: yes
   become: true
-
+- name: Recreate cluster 14 main if broken or missing
+  shell: |
+    pg_dropcluster --stop 14 main || true
+    pg_createcluster 14 main --start
+  args:
+    creates: /var/lib/postgresql/14/main
+  become: true
 - name: Ensure PostgreSQL service is started and enabled
   service:
     name: postgresql
