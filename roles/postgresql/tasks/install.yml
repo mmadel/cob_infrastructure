@@ -1,4 +1,3 @@
----
 - name: Install required packages
   apt:
     name:
@@ -10,21 +9,19 @@
     update_cache: yes
   become: true
 
-# Check cluster config and data directories
 - name: Check if cluster config exists
   stat:
     path: /etc/postgresql/14/main
   register: pg_conf_dir
   become: true
 
-- name: Check if cluster data directory exists
+- name: Check if data directory exists
   stat:
     path: /var/lib/postgresql/14/main
   register: pg_data_dir
   become: true
 
-# If config exists but data dir doesn't → broken cluster → cleanup
-- name: Forcefully remove broken cluster dirs
+- name: Remove broken cluster dirs if data is missing
   file:
     path: "{{ item }}"
     state: absent
@@ -36,28 +33,35 @@
     - not pg_data_dir.stat.exists
   become: true
 
-# Ensure the cluster is created (now guaranteed clean)
-- name: Create PostgreSQL 14 cluster if not present
-  shell: pg_createcluster 14 main --start
+- name: Recreate clean cluster with logging
+  shell: |
+    pg_createcluster 14 main --start -- --auth-local=trust
   args:
-    creates: /etc/postgresql/14/main
+    creates: /var/lib/postgresql/14/main
+  register: cluster_creation
   become: true
 
-# Ensure service is running
-- name: Ensure PostgreSQL is running
-  service:
-    name: postgresql
-    state: started
-    enabled: true
-  become: true
+- name: Show cluster creation stdout
+  debug:
+    var: cluster_creation.stdout_lines
 
-# Debug cluster list (optional)
-- name: Show PostgreSQL clusters
+- name: Show cluster creation stderr
+  debug:
+    var: cluster_creation.stderr_lines
+
+- name: Check PostgreSQL clusters after recreation
   shell: pg_lsclusters
   register: pg_clusters
   become: true
   failed_when: false
 
-- name: Print cluster list
+- name: Print PostgreSQL clusters
   debug:
     var: pg_clusters.stdout_lines
+
+- name: Ensure PostgreSQL service is started and enabled
+  service:
+    name: postgresql
+    state: started
+    enabled: true
+  become: true
