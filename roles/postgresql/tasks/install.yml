@@ -10,22 +10,21 @@
     update_cache: yes
   become: true
 
-# 🧪 Check if the cluster config directory exists
-- name: Check if cluster config directory exists
+# 🧪 Check for config and data directories
+- name: Check if cluster config exists
   stat:
     path: /etc/postgresql/14/main
   register: pg_conf_dir
   become: true
 
-# 🧪 Check if the data directory exists
-- name: Check if cluster data directory exists
+- name: Check if data directory exists
   stat:
     path: /var/lib/postgresql/14/main
   register: pg_data_dir
   become: true
 
-# 🧹 Remove cluster ONLY if config exists but data directory is missing (broken cluster)
-- name: Remove broken PostgreSQL cluster config and data
+# 🧹 Remove broken cluster if config exists but data does not
+- name: Remove broken PostgreSQL cluster config
   file:
     path: "{{ item }}"
     state: absent
@@ -37,27 +36,28 @@
     - not pg_data_dir.stat.exists
   become: true
 
-# 🛠️ Create the cluster if data dir doesn't exist (safe to re-run)
+# 🛠️ Create PostgreSQL cluster if not present
 - name: Create PostgreSQL 14 cluster if not present
   shell: pg_createcluster 14 main --start
   args:
     creates: /var/lib/postgresql/14/main
   become: true
 
-# 🔍 Optional: Debug cluster status
-- name: Show PostgreSQL clusters
-  shell: pg_lsclusters
-  register: pg_clusters
-  become: true
-
-- name: Print cluster list
-  debug:
-    var: pg_clusters.stdout_lines
-
-# ▶️ Ensure PostgreSQL service is running and enabled
+# ▶️ Ensure PostgreSQL is running
 - name: Ensure PostgreSQL service is started and enabled
   service:
     name: postgresql
     state: started
     enabled: true
   become: true
+
+# ✅ Only try pg_lsclusters AFTER the cluster is working
+- name: Show PostgreSQL clusters
+  shell: pg_lsclusters
+  register: pg_clusters
+  failed_when: false  # optional: don’t fail playbook even if it breaks
+  become: true
+
+- name: Debug cluster list
+  debug:
+    var: pg_clusters.stdout_lines
