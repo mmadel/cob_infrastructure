@@ -10,14 +10,13 @@
 
 # Install and configure PostgreSQL on the target VPS
 - include_tasks: install.yml
-# Get and extract PostgreSQL version (needed for configuration file path)
 - name: Get installed PostgreSQL version
   command: psql -V
   register: pg_version_raw
   changed_when: false
   become: true
 
-- name: Extract PostgreSQL major version
+- name: Extract major version
   set_fact:
     pg_version: "{{ pg_version_raw.stdout.split(' ')[-1].split('.')[0] }}"
 - include_tasks: secure.yml
