@@ -1,18 +1,20 @@
 ---
-- name: Ensure Python packages required on control node
+- name: Create virtual environment for control dependencies
   delegate_to: localhost
   run_once: true
-  block:
-    - name: Ensure pip is installed
-      ansible.builtin.package:
-        name: python3-pip
-        state: present
-      become: true
+  ansible.builtin.command:
+    cmd: python3 -m venv ~/.ansible_venv
+  args:
+    creates: ~/.ansible_venv/bin/activate
 
-    - name: Install passlib on control node
-      pip:
-        name: passlib
-        executable: pip3
+- name: Install passlib in virtualenv
+  delegate_to: localhost
+  run_once: true
+  ansible.builtin.command:
+    cmd: ~/.ansible_venv/bin/pip install passlib
+  environment:
+    PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
 - include_tasks: install.yml
 - include_tasks: secure.yml
 - include_tasks: users.yml
