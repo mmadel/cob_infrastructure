@@ -16,5 +16,5 @@
   become: true
   become_user: postgres
   community.postgresql.postgresql_db:
-    name: "{{ app_db }}"
+    name: "{{ database }}"
     owner: "{{ db_user }}"
