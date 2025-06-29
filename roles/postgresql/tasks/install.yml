@@ -17,18 +17,17 @@
   register: pg_conf_dir
   become: true
 
-- name: Check if cluster data directory exists
-  stat:
-    path: /var/lib/postgresql/14/main
-  register: pg_data_dir
-  become: true
-
 - name: Check if PG_VERSION exists (valid cluster)
   stat:
     path: /var/lib/postgresql/14/main/PG_VERSION
   register: pg_version_file
   become: true
-
+- name: Debug pg_conf_dir
+  debug:
+    var: pg_conf_dir
+- name: Debug pg_version_file
+  debug:
+    var: pg_version_file
 # Step 2: Remove broken cluster if PG_VERSION is missing
 - name: Remove broken PostgreSQL cluster (config + data)
   file:
