@@ -10,7 +10,7 @@
     update_cache: yes
   become: true
 
-# Step 1: Check if cluster config and data directories exist
+# Step 1: Check if config and data dirs exist
 - name: Check if PostgreSQL config directory exists
   stat:
     path: /etc/postgresql/14/main
@@ -23,15 +23,16 @@
   register: pg_data_dir
   become: true
 
-# Step 2: Check if data directory is actually valid (contains PG_VERSION file)
-- name: Check if data directory is valid (has PG_VERSION)
-  stat:
-    path: /var/lib/postgresql/14/main/PG_VERSION
-  register: pg_data_dir_valid
+# Step 2: Check if cluster is healthy using pg_lsclusters
+- name: Check if PostgreSQL 14 main cluster is online
+  shell: pg_lsclusters | grep -E '^14\s+main\s+[0-9]+\s+online'
+  register: pg_cluster_check
+  changed_when: false
+  failed_when: false
   become: true
 
-# Step 3: Remove broken cluster if config exists but data is invalid
-- name: Remove broken PostgreSQL cluster directories
+# Step 3: Remove broken cluster dirs if cluster is missing/broken
+- name: Remove broken PostgreSQL cluster dirs
   file:
     path: "{{ item }}"
     state: absent
@@ -39,22 +40,33 @@
     - /etc/postgresql/14/main
     - /var/lib/postgresql/14/main
   when:
-    - pg_conf_dir.stat.exists
-    - not pg_data_dir_valid.stat.exists
+    - pg_cluster_check.rc != 0
+    - pg_conf_dir.stat.exists or pg_data_dir.stat.exists
   become: true
 
-# Step 4: Create cluster if PG_VERSION still doesn't exist
-- name: Create PostgreSQL 14 cluster if not already valid
+# Step 4: Create cluster only if not present/online
+- name: Create PostgreSQL 14 cluster if not present
   shell: |
     pg_createcluster 14 main --start -- --auth-local=trust
-  args:
-    creates: /var/lib/postgresql/14/main/PG_VERSION
+  when: pg_cluster_check.rc != 0
   become: true
 
-# Step 5: Check PostgreSQL clusters
-- name: Check PostgreSQL clusters
+# Step 5: Check clusters again
+- name: Check PostgreSQL clusters after creation
   shell: pg_lsclusters
   register: pg_clusters
-  become: true
   changed_when: false
   failed_when: false
+  become: true
+
+- name: Print PostgreSQL clusters
+  debug:
+    var: pg_clusters.stdout_lines
+
+# Step 6: Ensure PostgreSQL service is started and enabled
+- name: Ensure PostgreSQL service is started and enabled
+  service:
+    name: postgresql
+    state: started
+    enabled: true
+  become: true
