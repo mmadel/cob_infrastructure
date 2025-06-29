@@ -28,7 +28,7 @@
     var: pg_conf_dir.stat.exists
 - name: Debug pg_version_file
   debug:
-    var: pg_versiopg_version_file.stat.exists
+    var: pg_version_file.stat.exists
 # Step 2: Remove broken cluster if PG_VERSION is missing
 - name: Remove broken PostgreSQL cluster (config + data)
   file:
