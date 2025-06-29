@@ -1,14 +1,14 @@
-- name: Compute hashed PostgreSQL user password
-  set_fact:
-    db_password_hash: "md5{{ (db_password + db_user) | hash('md5') }}"
-  no_log: true
+# - name: Compute hashed PostgreSQL user password
+#   set_fact:
+#     db_password_hash: "md5{{ (db_password + db_user) | hash('md5') }}"
+#   no_log: true
 
 - name: Create application database user
   become: true
   become_user: postgres
   community.postgresql.postgresql_user:
     name: "{{ db_user }}"
-    password: "{{ db_password_hash }}"
+    password: "{{ db_password}}"
     role_attr_flags: CREATEDB,LOGIN
   no_log: true
 
