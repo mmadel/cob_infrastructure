@@ -11,7 +11,7 @@
 # Install and configure PostgreSQL on the target VPS
 - include_tasks: install.yml
 - name: Get installed PostgreSQL version
-  command: psql -V
+  command: /usr/lib/postgresql/14/bin/psql --version
   register: pg_version_raw
   changed_when: false
   become: true
