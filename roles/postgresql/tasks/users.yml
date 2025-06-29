@@ -8,7 +8,7 @@
   become_user: postgres
   community.postgresql.postgresql_user:
     name: "{{ db_user }}"
-    password: "{{ db_password}}"
+    password: "{{ db_password_hash }}"
     role_attr_flags: CREATEDB,LOGIN
   no_log: true
 
