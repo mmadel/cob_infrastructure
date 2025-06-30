@@ -4,7 +4,7 @@
   become_user: postgres
   community.postgresql.postgresql_user:
     name: postgres
-    password: "{{ postgres_admin_password_hashed }}"
+    password: "{{ root_password }}"
 
 - name: Configure `pg_hba.conf` to use md5 authentication
   lineinfile:
