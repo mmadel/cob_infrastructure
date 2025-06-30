@@ -12,9 +12,10 @@
     role_attr_flags: CREATEDB,LOGIN
   no_log: true
 
-- name: Create application database
+- name: Create application databases
   become: true
   become_user: postgres
   community.postgresql.postgresql_db:
-    name: "{{ database }}"
+    name: "{{ item }}"
     owner: "{{ db_user }}"
+  loop: "{{ database }}"
