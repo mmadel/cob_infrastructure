@@ -1,6 +1,25 @@
 ---
-- name: Provision DB for d_intake
+- name: Provision DB for Digital Intake
   hosts: d_intake
   become: yes
+  gather_facts: false
+  vars:
+    service_name: d_intake
+  handlers:
+    - import_tasks: ../tasks/handlers/main.yml
+  pre_tasks:
+  - name: Load env config
+    import_tasks: ../tasks/load_env_config.yml
+    
+
+  - name: Debug DB variables (check if loaded correctly)
+    debug:
+        msg:
+          - "DB User: {{ db_user }}"
+          - "Databases: {{ database }}"
+          - "Root Password: {{ db_password | default('not loaded') }}"
+  tasks:
+    - name: Export .env file to remote VPS
+      import_tasks: ../tasks/export_env_file.yml
   roles:
     - role: postgresql
