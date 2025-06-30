@@ -6,10 +6,13 @@
     name: postgres
     password: "{{ root_password }}"
 
-- name: Allow remote connections in postgresql.conf
+- name: Allow remote connections (non-SSL + SSL) in pg_hba.conf
   lineinfile:
-    path: "/etc/postgresql/14/main/postgresql.conf"
-    regexp: '^#?listen_addresses'
-    line: "listen_addresses = '*'"
+    path: "/etc/postgresql/14/main/pg_hba.conf"
+    insertafter: EOF
+    line: "{{ item }}"
+  with_items:
+    - "host all all 0.0.0.0/0 scram-sha-256"
+    - "hostssl all all 0.0.0.0/0 scram-sha-256"
   become: true
   notify: Restart PostgreSQL
