@@ -6,11 +6,11 @@
     name: postgres
     password: "{{ root_password }}"
 
-- name: Configure `pg_hba.conf` to use md5 authentication
-  lineinfile:
-    path: "/etc/postgresql/{{ pg_version }}/main/pg_hba.conf"
-    regexp: '^host\s+all\s+all\s+127\.0\.0\.1/32\s+'
-    line: 'host all all 127.0.0.1/32 md5'
-    state: present
-  notify: Restart PostgreSQL
-  become: true
+# - name: Configure `pg_hba.conf` to use md5 authentication
+#   lineinfile:
+#     path: "/etc/postgresql/{{ pg_version }}/main/pg_hba.conf"
+#     regexp: '^host\s+all\s+all\s+127\.0\.0\.1/32\s+'
+#     line: 'host all all 127.0.0.1/32 md5'
+#     state: present
+#   notify: Restart PostgreSQL
+#   become: true

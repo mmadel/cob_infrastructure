@@ -20,6 +20,7 @@
   set_fact:
     pg_version: "{{ pg_version_raw.stdout.split(' ')[-1].split('.')[0] }}"
 
+- include_tasks: secure.yml
 - include_tasks: users.yml
 
 - include_tasks: rotate_passwords.yml
